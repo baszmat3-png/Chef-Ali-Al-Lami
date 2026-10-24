@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>لوحة التحكم</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/qr.js"></script>
 <style>
 :root{--bg:#f8fafc;--cd:#fff;--nv:#052b52;--nv2:#0b4a5c;--gr:#1fa06f;--gr2:#e6f4ee;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--rd:#e11d48;box-sizing:border-box}
 *{box-sizing:border-box}html,body{margin:0}
@@ -36,7 +36,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gr);box-shadow:0 0 0 
 .btn{border:0;background:var(--gr);color:#fff;border-radius:14px;padding:11px 20px;font-weight:700;cursor:pointer}
 .btn.o{background:#fff;color:var(--gr);border:1.5px solid var(--gr)}.btn.g{background:#e5e7eb;color:var(--tx)}.btn.r{background:#fff1f2;color:var(--rd);border:1.5px solid #fecdd3}
 .btn.s{padding:7px 14px;font-size:14px}
-.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.hd .btn{white-space:nowrap}.hd>div{flex:1 1 220px}
 .gr{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
 .st{padding:18px 20px;display:flex;gap:14px;align-items:center;cursor:pointer;margin:0}
 .st b{display:block;font-size:30px;line-height:1.1}.st em{font-style:normal;font-size:30px;background:var(--gr2);border-radius:14px;width:54px;height:54px;display:grid;place-items:center}
@@ -63,28 +63,50 @@ input:focus,select:focus,textarea:focus{border-color:var(--gr);box-shadow:0 0 0 
 .tc{border:2px solid var(--bd);border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:16px}.tc.on{border-color:var(--gr);box-shadow:0 0 0 4px var(--gr2)}
 .sws i{display:inline-block;width:16px;height:16px;border-radius:50%;margin:0 2px}
 .chk{max-height:210px;overflow:auto;border:1.5px solid var(--bd);border-radius:14px;margin-top:8px;padding:4px 12px}.chk label{display:flex;gap:10px;align-items:center;margin:0;padding:8px 0}.chk input{width:auto}
+.ro{flex-wrap:wrap}
+.ro>.inf{flex:1 1 150px;min-width:0}
+.ro>.act{flex:none}
+.act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tg{display:flex!important;align-items:center;gap:8px;margin:0!important;font-weight:500;font-size:14px;color:var(--mu);cursor:pointer}
+.bdg{display:inline-block;font-size:12px;border-radius:10px;padding:1px 9px;margin-inline-start:6px;vertical-align:middle}.bdg.on{background:var(--gr2);color:var(--gr)}.bdg.off{background:#fee2e2;color:var(--rd)}
+@media(max-width:600px){.ro>.act{flex:1 0 100%;justify-content:space-between;border-top:1px dashed var(--bd);padding-top:10px;margin-top:2px}.ro .act .btn{flex:1}}
+.ord{padding:0}.ord .oh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bd);background:#f8fafc}
+.ord .ob{padding:12px 16px}.ord .ol{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.ord .ot{display:flex;justify-content:space-between;border-top:1px dashed var(--bd);margin-top:8px;padding-top:8px;font-weight:800}
+.ord .on_{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:8px 10px;margin-top:8px}
+.bk2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--bd)}.bk2:first-child{border-top:0}.bk2>div{flex:1 1 160px}
+.qrw{position:fixed;inset:0;z-index:90;background:#fff;color:#000;overflow:auto;padding:12px}
+.qrw .tb2{display:flex;gap:8px;margin-bottom:12px}.qrw .tb2 button{flex:1;padding:12px;border-radius:12px;border:1px solid #ccc;background:#f4f4f4;color:#000;font:700 16px Tajawal,sans-serif;cursor:pointer}
+.qg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.qc{border:2px solid #000;border-radius:14px;padding:12px;text-align:center;break-inside:avoid}
+.qc svg{width:100%;height:auto;max-width:220px}.qc b{display:block;font-size:26px}.qc small{color:#444;display:block}
+@media print{body>*:not(.qrw){display:none!important}.qrw{position:static;overflow:visible}.qrw .tb2{display:none}.qg{grid-template-columns:repeat(3,1fr)}}
 </style></head><body>
 <div id="app"></div><input type="file" id="fp" accept="image/*" hidden onchange="fpd(this)"><div id="m"></div><div id="t"></div>
 <script>
-let ME=null,U=[],busy=0,again=0,D=null,TK=sessionStorage.getItem('tk')||'',bi=0,pg=location.hash.slice(1)||'home',q='',fc='',fs='all',tmr,MI=null,dro=0;
+const OWN=['users','backup'];
+let OR=[],BK=[],SG={},SGL={},seen=null,ME=null,U=[],busy=0,again=0,D=null,TK=(()=>{try{return localStorage.getItem('tk')||''}catch(x){return ''}})(),bi=0,pg=location.hash.slice(1)||'home',q='',fc='',fs='all',tmr,MI=null,dro=0;
 const $=s=>document.querySelector(s);
 const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money=n=>Number(n||0).toLocaleString('en-US')+' د.ع';
 const uid=()=>Math.random().toString(36).slice(2,8);
 const B=()=>D.branches[bi];
-const NAV=[['home','🏠','الرئيسية'],['rest','🏪','المطعم'],['cats','📂','الفئات'],['prods','🍽️','المنتجات'],['orders','🧾','الطلبات'],['tables','📋','الطاولات ورمز QR'],['branches','🏬','الفروع'],['offers','🎯','العروض'],['themes','🎨','السمات'],['rates','⭐','التقييمات'],['users','👥','المستخدمون'],['acc','🔑','الحساب']];
+const NAV=[['home','🏠','الرئيسية'],['rest','🏪','المطعم'],['cats','📂','الفئات'],['prods','🍽️','المنتجات'],['orders','🧾','الطلبات'],['tables','📋','الطاولات ورمز QR'],['branches','🏬','الفروع'],['offers','🎯','العروض'],['themes','🎨','السمات'],['rates','⭐','التقييمات'],['users','👥','المستخدمون'],['backup','💾','النسخ الاحتياطي'],['acc','🔑','الحساب']];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2200)}
-function sv(){clearTimeout(tmr);tmr=setTimeout(flush,600)}
+function sv(){clearTimeout(tmr);tmr=setTimeout(()=>{tmr=0;flush()},600)}
+async function flushNow(){clearTimeout(tmr);tmr=0;await flush();while(busy)await new Promise(r=>setTimeout(r,60))}
 async function flush(){if(busy){again=1;return}busy=1;try{do{again=0;const r=await fetch('/api/menu',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TK},body:JSON.stringify(D)});
- if(r.ok){const j=await r.json();D._v=j.v;toast('تم الحفظ ✓')}else{if(r.status==401){out();break}toast(r.status==403?'ليس لديك صلاحية لهذا الإجراء':r.status==409?'عدّل مستخدم آخر البيانات، تم التحديث':'تعذر الحفظ ('+r.status+')');again=0;await reload();break}}while(again)}catch(x){toast('تعذر الحفظ')}busy=0}
+ if(r.ok){const j=await r.json();D._v=j.v;toast('تم الحفظ ✓');if(j.ext){await reload();break}}else{if(r.status==401){out();break}toast(r.status==403?'ليس لديك صلاحية لهذا الإجراء':r.status==409?'عدّل مستخدم آخر البيانات، تم التحديث':'تعذر الحفظ ('+r.status+')');again=0;await reload();break}}while(again)}catch(x){toast('تعذر الحفظ')}busy=0}
 function norm(){D.branches.forEach(b=>{b.tables=b.tables||[];b.items=b.items||[]})}
 async function reload(){try{D=await(await fetch('/api/menu')).json();norm();if(bi>=D.branches.length)bi=0;draw()}catch(x){}}
 const can=p=>ME&&(ME.owner||ME.perms.includes(p));
 function gate(){document.querySelectorAll('[data-p]').forEach(el=>{if(can(el.dataset.p))return;if(el.dataset.h){el.style.display='none';return}(el.matches('input,select,textarea,button')?[el]:[...el.querySelectorAll('input,select,textarea,button')]).forEach(x=>{x.disabled=true;x.style.opacity=.55})})}
 function set(k,v){B()[k]=v;sv()}
-function go(p){if(p=='users')loadU();pg=p;location.hash=p;dro=0;draw();scrollTo(0,0)}
+function go(p){if(p=='users')loadU();if(p=='backup')loadBk();if(p=='orders')loadO();pg=p;location.hash=p;dro=0;draw();scrollTo(0,0)}
 function fld(l,k,o={}){const b=B();return `<label>${l}</label><input ${o.ltr?'dir="ltr"':''} placeholder="${e(o.ph||'')}" value="${e(b[k])}" onchange="set('${k}',this.value.trim())">${o.h?`<div class="hint">${o.h}</div>`:''}`}
-function imgPick(f,max,cb){if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,max/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.75))};m.src=r.result};r.readAsDataURL(f)}
+async function up(blob,ext){const r=await fetch('/api/upload?ext='+ext,{method:'POST',headers:{'x-admin-token':TK},body:blob});if(!r.ok)throw r.status;return (await r.json()).url}
+function imgPick(f,max,cb){if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,max/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);
+ c.toBlob(async b=>{try{toast('جارٍ رفع الصورة…');cb(await up(b,'jpg'))}catch(x){toast(x==403?'ليس لديك صلاحية':'فشل رفع الصورة')}},'image/jpeg',.8)};m.src=r.result};r.readAsDataURL(f)}
 function emp(i,t,p){return `<div class="cd em"><i>${i}</i><b>${t}</b><p>${p}</p></div>`}
 const TH={classic:['كلاسيكي','🏛️',{bg:'#0b0b0e',cd:'#16161b',tx:'#ffffff',mu:'#a9a9b3',ac:'#e8c468',bd:'#2a2a32',ax:'#111111',cb:'#ffffff'}],
 modern:['عصري','✨',{bg:'#f8fafc',cd:'#ffffff',tx:'#0f172a',mu:'#64748b',ac:'#1fa06f',bd:'#e2e8f0',ax:'#ffffff',cb:'#cbd5e1'}],
@@ -105,6 +127,7 @@ home(){const b=B(),of=b.items.filter(i=>i.o>i.p).length+(b.offers||[]).length,st
 rest(){const b=B();return `<h1>المطعم</h1><p class="sub">إدارة ملف المطعم والهوية البصرية</p><div data-p="info">
  <div class="cd"><div class="ch">المعلومات الأساسية</div><div class="cb"><label>اسم المطعم</label><input value="${e(D.name)}" onchange="D.name=this.value.trim();sv()">
  <label>الشعار</label>${D.logo?`<img src="${D.logo}" style="width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin-bottom:8px">`:''}<input type="file" accept="image/*" onchange="imgPick(this.files[0],300,d=>{D.logo=d;sv();draw()})"><div class="hint">يُفضّل صورة مربعة 400×400 أو أكبر</div></div></div>
+ <div class="cd"><div class="ch">ظهور المنيو</div><div class="cb"><label class="tg"><input type="checkbox" class="sw" ${D.noTop?'':'checked'} onchange="D.noTop=!this.checked;sv()"><span>إظهار قسم «🔥 الأكثر طلباً» (يُحسب تلقائياً من الطلبات المرسلة)</span></label></div></div>
  <div class="cd"><div class="ch">صفحة الدخول</div><div class="cb"><label>صورة الخلفية</label>${D.bg?`<div class="ph" style="background-image:url(${D.bg})"></div>`:''}<input type="file" accept="image/*" onchange="imgPick(this.files[0],900,d=>{D.bg=d;sv();draw()})">
  <label>فيديو الخلفية (قصير، أقل من 10 ميغا)</label><input type="file" accept="video/*" onchange="upVid(this.files[0])">
  ${D.bg||D.vid?`<button class="btn r s" style="margin-top:12px" onclick="D.bg='';D.vid='';sv();draw()">إزالة الصورة والفيديو</button>`:''}</div></div>
@@ -112,33 +135,44 @@ rest(){const b=B();return `<h1>المطعم</h1><p class="sub">إدارة ملف
  <div class="cd"><div class="ch">الموقع وروابط التواصل</div><div class="cb">${fld('📍 موقع كوكل مابس','map',{ltr:1,ph:'https://maps.google.com/…',h:'سيظهر زر «الموقع» في المنيو'})}${fld('إنستغرام','ig',{ltr:1,ph:'https://instagram.com/…'})}${fld('فيسبوك','fb',{ltr:1,ph:'https://facebook.com/…'})}${fld('تيك توك','tt',{ltr:1,ph:'https://tiktok.com/@…'})}</div></div></div>`},
 cats(){const b=B(),cm=b.cimg||{};return `<h1>الفئات</h1><p class="sub">أقسام المنيو للفرع الحالي — اضغط على الصورة لتغييرها</p>
  <div class="cd cb" data-p="add" data-h="1"><div style="display:flex;gap:10px"><input id="nc" placeholder="اسم فئة جديدة"><button class="btn" style="flex:none" onclick="addC()">+ إضافة</button></div></div>
- <div class="cd">${b.cats.map(c=>{const n=b.items.filter(i=>i.c==c).length,im=cm[c]||(b.items.find(i=>i.c==c&&i.img)||{}).img;return `<div class="ro">${thumb('cat',c,im)}<div><b>${e(c)}</b><small>${n} منتج</small></div><button class="btn r s" data-p="delete" data-h="1" data-c="${e(c)}" onclick="delC(this.dataset.c)">حذف</button></div>`}).join('')||'<div class="em"><p>لا توجد فئات</p></div>'}</div>`},
+ <div class="cd">${b.cats.map(c=>{const n=b.items.filter(i=>i.c==c).length,im=cm[c]||(b.items.find(i=>i.c==c&&i.img)||{}).img;return `<div class="ro">${thumb('cat',c,im)}<div class="inf"><b>${e(c)}</b><small>${n} منتج</small></div><div class="act"><button class="btn r s" data-p="delete" data-h="1" data-c="${e(c)}" onclick="delC(this.dataset.c)">حذف</button></div></div>`}).join('')||'<div class="em"><p>لا توجد فئات</p></div>'}</div>`},
 prods(){const b=B(),l=b.items.filter(i=>(!q||i.n.includes(q))&&(!fc||i.c==fc)&&(fs=='all'||(fs=='on')==(i.a!==false)));
  return `<div class="hd"><div><h1>المنتجات</h1><p class="sub">${b.items.length} منتج</p></div><button class="btn" data-p="add" data-h="1" onclick="itemM()">+ إضافة منتج</button></div>
  <div class="cd cb"><input placeholder="🔍 ابحث عن منتج…" value="${e(q)}" oninput="q=this.value;lst()"><select style="margin-top:10px" onchange="fc=this.value;draw()"><option value="">كل الفئات</option>${b.cats.map(c=>`<option ${c==fc?'selected':''} value="${e(c)}">${e(c)}</option>`).join('')}</select>
  <div class="pl">${[['all','الكل'],['on','متاح'],['off','غير متاح']].map(x=>`<button class="${fs==x[0]?'on':''}" onclick="fs='${x[0]}';draw()">${x[1]}</button>`).join('')}</div></div><div class="cd" id="pl">${rows(l)}</div>`},
-orders(){const b=B();return `<h1>الطلبات</h1><p class="sub">طلبات الزبائن المرسلة من قائمتك العامة</p>${emp('🧾','لا توجد طلبات هنا','الطلبات تصلك حالياً عبر واتساب مباشرة'+(b.wa?' على الرقم <span dir="ltr">'+e(b.wa)+'</span>':'. أضف رقم الواتساب من صفحة «المطعم»')+'.')}<button class="btn o" onclick="go('rest')">إعدادات الواتساب</button>`},
-tables(){const b=B(),t=b.tables||[];return `<div class="hd"><div><h1>الطاولات ورمز QR</h1><p class="sub">أنشئ رمز QR لكل طاولة ليمسحه العميل ويفتح المنيو ورقم طاولته جاهز</p></div><button class="btn" data-p="tables" data-h="1" onclick="tblM()">+ إضافة طاولة</button></div>
- ${t.length?`<div class="gr">${t.map(x=>`<div class="cd tbc"><b style="font-size:22px">${e(x.name)}</b><div class="q" id="qr-${x.id}"></div><div class="hint">امسح لعرض القائمة</div><div class="lnk">${e(tl(x))}</div>
+orders(){const b=B(),L=OR.filter(o=>o.b==b.id);return `<div class="hd"><div><h1>الطلبات</h1><p class="sub">${L.length} طلب مسجَّل لفرع «${e(b.name)}» — تتحدث تلقائياً</p></div><button class="btn o s" onclick="loadO(1)">تحديث</button></div>
+ ${L.length?L.map(o=>`<div class="cd ord"><div class="oh"><b>#${e(o.id.slice(-5))}</b>${o.table?`<span class="bdg on">🪑 طاولة ${e(o.table.name)}</span>`:'<span class="bdg off" style="background:#eef2ff;color:#4338ca">🛵 بدون طاولة</span>'}<small style="margin-inline-start:auto;color:var(--mu)">${e(new Date(o.ts).toLocaleString('ar-IQ',{dateStyle:'short',timeStyle:'short'}))}</small></div>
+ <div class="ob"><div>👤 <b>${e(o.name)}</b> · <a href="tel:${e(o.phone)}" dir="ltr" style="color:var(--gr)">📞 ${e(o.phone)}</a></div>
+ <div style="margin-top:8px">${o.items.map(i=>`<div class="ol"><span>${i.q}× ${e(i.n)}</span><span>${money(i.p*i.q)}</span></div>`).join('')}</div>
+ <div class="ot"><span>المجموع</span><span>${money(o.total)}</span></div>${o.notes?`<div class="on_">📝 ${e(o.notes)}</div>`:''}
+ <div class="acts" style="margin-top:12px"><button class="btn r s" data-p="delete" data-h="1" data-i="${e(o.id)}" onclick="delO(this.dataset.i)">حذف الطلب</button></div></div></div>`).join(''):emp('🧾','لا توجد طلبات بعد','كل طلب يرسله الزبون عبر المنيو يُسجَّل هنا مع رقم الطاولة (إن وُجد)، ثم يصلك أيضاً على واتساب.')}`},
+tables(){const b=B(),t=b.tables||[],sg=SG[b.id];if(t.length&&(!sg||t.some(x=>!sg[x.id])))loadSig();
+ return `<div class="hd"><div><h1>الطاولات ورمز QR</h1><p class="sub">لكل طاولة رمز QR خاص: يفتح المنيو ويكتب رقم الطاولة تلقائياً في الطلب، ولا يمكن للزبون تغييره</p></div><button class="btn" data-p="tables" data-h="1" onclick="tblM()">+ إضافة طاولة</button></div>
+ ${t.length?`<div class="acts" style="margin:0 0 6px"><button class="btn o s" style="flex:1" onclick="printQ()">🖨 طباعة كل الباركودات</button></div><div class="gr">${t.map(x=>`<div class="cd tbc"><b style="font-size:22px">${e(x.name)}</b><div class="q" id="qr-${x.id}">${tl(x)?'':'<small class="hint">جارٍ التجهيز…</small>'}</div><div class="hint">امسح لعرض القائمة</div><div class="lnk">${e(tl(x))}</div>
  <div class="acts" style="flex-wrap:wrap"><button class="btn o s" style="flex:1" data-i="${x.id}" onclick="cp(this.dataset.i)">نسخ الرابط</button><button class="btn g s" style="flex:1" data-i="${x.id}" onclick="dl(this.dataset.i)">تحميل QR</button><button class="btn r s" data-p="tables" data-h="1" data-i="${x.id}" onclick="delT(this.dataset.i)">حذف</button></div></div>`).join('')}</div>`:emp('🪑','لا توجد طاولات بعد','أضف طاولات لإنشاء رموز QR لعملائك.')}`},
 branches(){return `<div class="hd"><div><h1>الفروع</h1><p class="sub">لكل فرع منتجاته ورقم واتسابه</p></div><button class="btn" data-p="branches" data-h="1" onclick="addB()">+ فرع جديد</button></div>
  ${D.branches.map((x,i)=>`<div class="cd cb"><label style="margin-top:0">اسم الفرع</label><input data-p="branches" value="${e(x.name)}" onchange="D.branches[${i}].name=this.value.trim();sv()"><div class="hint">رابط الفرع المباشر:</div><div class="lnk">${e(location.origin+'/#'+x.id)}</div>
  <div class="acts"><button class="btn o s" onclick="bi=${i};go('home')">${i==bi?'الفرع الحالي':'فتح الفرع'}</button><button class="btn r s" data-p="branches" data-h="1" onclick="delB(${i})">حذف</button></div></div>`).join('')}`},
 offers(){const b=B(),os=b.offers||[],mn=b.items.filter(i=>i.o>i.p),nm=o=>(o.scope=='all'?['كل المنيو']:o.scope=='cat'?o.t:o.t.map(id=>(b.items.find(i=>i.id==id)||{}).n)).filter(Boolean).join('، ');
  return `<div class="hd"><div><h1>العروض والخصومات</h1><p class="sub">خصومات تظهر على المنيو، الزبون يشوف السعر الجديد والقديم مشطوب</p></div><button class="btn" data-p="offers" data-h="1" onclick="offM()">+ إضافة خصم</button></div>
- ${os.length||mn.length?`<div class="cd">${os.map(o=>`<div class="ro"><div><b>${e(o.name)}</b><small>${e(nm(o))}${o.from||o.to?' · '+e(o.from||'…')+' ← '+e(o.to||'…'):''}</small></div><b style="color:var(--gr)">${o.type=='pct'?o.val+'%':money(o.val)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${o.id}" onclick="rmO(this.dataset.i)">حذف</button></div>`).join('')}${mn.map(i=>`<div class="ro"><div><b>${e(i.n)}</b><small>سعر مخفّض يدوياً · <s>${money(i.o)}</s></small></div><b style="color:var(--gr)">${money(i.p)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${i.id}" onclick="rmOff(this.dataset.i)">إزالة</button></div>`).join('')}</div>`:emp('🎯','لا توجد عروض','أضف خصماً على كل المنيو أو أقسام أو منتجات محددة.')}`},
+ ${os.length||mn.length?`<div class="cd">${os.map(o=>`<div class="ro"><div class="inf"><b>${e(o.name)}</b><small>${e(nm(o))}${o.from||o.to?' · '+e(o.from||'…')+' ← '+e(o.to||'…'):''}</small></div><div class="act"><b style="color:var(--gr)">${o.type=='pct'?o.val+'%':money(o.val)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${o.id}" onclick="rmO(this.dataset.i)">حذف</button></div></div>`).join('')}${mn.map(i=>`<div class="ro"><div class="inf"><b>${e(i.n)}</b><small>سعر مخفّض يدوياً · <s>${money(i.o)}</s></small></div><div class="act"><b style="color:var(--gr)">${money(i.p)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${i.id}" onclick="rmOff(this.dataset.i)">إزالة</button></div></div>`).join('')}</div>`:emp('🎯','لا توجد عروض','أضف خصماً على كل المنيو أو أقسام أو منتجات محددة.')}`},
 themes(){const cur=D.theme||'classic';return `<h1>السمات</h1><p class="sub">اختر تصميماً جاهزاً لألوان قائمة الزبائن</p><div class="cd"><div class="cb"><div class="gr" data-p="info" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TH).map(([k,v])=>`<button class="tc ${k==cur?'on':''}" data-k="${k}" onclick="setTh(this.dataset.k)" style="background:${v[2].bg};color:${v[2].tx}"><span style="font-size:34px">${v[1]}</span><b>${v[0]}</b><span class="sws"><i style="background:${v[2].ac}"></i><i style="background:${v[2].cd};border:1px solid ${v[2].bd}"></i><i style="background:${v[2].tx}"></i></span></button>`).join('')}</div></div></div>`},
 rates(){return `<h1>التقييمات</h1><p class="sub">تقييمات الزبائن لطلباتك وأصنافك</p>${emp('⭐','لا توجد تقييمات بعد','تظهر هنا تقييمات الزبائن بعد تفعيل نظام التقييم.')}`},
+backup(){return `<h1>النسخ الاحتياطي</h1><p class="sub">كل بياناتك تُحفظ على السيرفر وتظهر للجميع مباشرة. هنا تأخذ نسخة تحتفظ بها، أو تستعيد نسخة ونشرها للجميع</p>
+ <div class="cd"><div class="ch">نسخة كاملة على جهازك</div><div class="cb"><p class="hint" style="margin-top:0">ملف واحد يحوي: المنيو والأسعار والأقسام والصور والفيديو والسمات والمستخدمين والطاولات (ورموزها) والطلبات. احتفظ به في مكان آمن، فهو يحوي بيانات حساسة.</p><button class="btn" onclick="dlBk(this)">⬇️ تنزيل نسخة احتياطية كاملة</button></div></div>
+ <div class="cd"><div class="ch">استيراد نسخة ونشرها</div><div class="cb"><p class="hint" style="margin-top:0">يستبدل كل البيانات الحالية بمحتوى الملف ويظهر للجميع فوراً. يُحفظ نسخة تلقائية من الوضع الحالي قبل الاستبدال.</p><input type="file" id="rf" accept=".json,application/json"><button class="btn r" style="margin-top:12px" onclick="restoreF(this)">⬆️ استيراد واستبدال</button></div></div>
+ <div class="cd"><div class="ch">نسخ تلقائية على السيرفر</div><div class="cb" style="padding-bottom:6px"><p class="hint" style="margin-top:0">تُؤخذ تلقائياً كل بضع ساعات عند التعديل، ويُحتفظ بآخر 40 نسخة (المنيو والمستخدمون).</p><button class="btn o s" onclick="mkBk()">+ إنشاء نسخة الآن</button></div>
+ ${BK.length?BK.map(x=>`<div class="bk2"><div><b>${e(new Date(x.ts).toLocaleString('ar-IQ',{dateStyle:'medium',timeStyle:'short'}))}</b><small style="display:block;color:var(--mu)">${x.label=='auto'?'تلقائية':x.label=='manual'?'يدوية':x.label=='before-restore'?'قبل استعادة':e(x.label)}</small></div><button class="btn o s" data-i="${x.id}" onclick="rsBk(this.dataset.i)">استعادة</button></div>`).join(''):'<div class="em"><p>لا توجد نسخ بعد</p></div>'}</div>`},
 acc(){return `<h1>الحساب</h1><p class="sub">أنت داخل باسم: ${e(ME.name)}</p><div class="cd"><div class="ch">بيانات الدخول</div><div class="cb"><p style="margin:0" dir="ltr">${e(ME.email)}</p><p class="hint">${ME.owner?'كلمة مرور المالك محفوظة بإعدادات الخادم (<b dir="ltr">ADMIN_PASSWORD</b>) وتتغير من Render.':'لتغيير الرمز تواصل مع المالك.'}</p>${ME.owner?'':`<p class="hint">صلاحياتك: ${ME.perms.length?ME.perms.map(x=>PL[x][0]).join('، '):'مشاهدة فقط'}</p>`}</div></div><button class="btn r" onclick="out()">تسجيل الخروج</button>`},
 users(){return `<div class="hd"><div><h1>المستخدمون</h1><p class="sub">أضف مستخدمين بالبريد والرمز وحدد صلاحياتهم</p></div><button class="btn" onclick="usrM()">+ إضافة مستخدم</button></div>
- ${U.length?`<div class="cd">${U.map(u=>`<div class="ro"><div><b>${e(u.name)}${u.active?'':' <small>(موقوف)</small>'}</b><small dir="ltr" style="text-align:right">${e(u.email)}</small><small>${u.perms.length?u.perms.map(x=>PL[x][0]).join('، '):'مشاهدة فقط'}</small></div><button class="btn o s" data-i="${u.id}" onclick="usrM(this.dataset.i)">تعديل</button><button class="btn r s" data-i="${u.id}" onclick="delU(this.dataset.i)">حذف</button></div>`).join('')}</div>`:emp('👥','لا يوجد مستخدمون','أضف مستخدماً بالبريد والرمز وحدد ما يقدر يسويه.')}`}
+ ${U.length?`<div class="cd">${U.map(u=>`<div class="ro"><div class="inf"><b>${e(u.name)}${u.active?'':' <small>(موقوف)</small>'}</b><small dir="ltr" style="text-align:right">${e(u.email)}</small><small>${u.perms.length?u.perms.map(x=>PL[x][0]).join('، '):'مشاهدة فقط'}</small></div><div class="act"><button class="btn o s" data-i="${u.id}" onclick="usrM(this.dataset.i)">تعديل</button><button class="btn r s" data-i="${u.id}" onclick="delU(this.dataset.i)">حذف</button></div></div>`).join('')}</div>`:emp('👥','لا يوجد مستخدمون','أضف مستخدماً بالبريد والرمز وحدد ما يقدر يسويه.')}`}
 };
-function rows(l){return l.map(i=>`<div class="ro">${thumb('item',i.id,i.img)}<div><b>${e(i.n)}</b><small>${e(i.c)} · ${money(i.p)}</small></div><input type="checkbox" class="sw" data-p="edit" ${i.a!==false?'checked':''} data-i="${i.id}" onchange="tog(this.dataset.i,this.checked)"><button class="btn o s" data-p="edit" data-h="1" data-i="${i.id}" onclick="itemM(this.dataset.i)">تعديل</button><button class="btn r s" data-p="delete" data-h="1" data-i="${i.id}" onclick="delI(this.dataset.i)">حذف</button></div>`).join('')||'<div class="em"><p>لا توجد منتجات مطابقة</p></div>'}
+function rows(l){return l.map(i=>`<div class="ro">${thumb('item',i.id,i.img)}<div class="inf"><b>${e(i.n)}</b><small>${e(i.c)} · ${money(i.p)}${i.o>i.p?' · <s>'+money(i.o)+'</s>':''}</small><span class="bdg ${i.a!==false?'on':'off'}">${i.a!==false?'متاح':'غير متاح'}</span></div><div class="act"><label class="tg"><input type="checkbox" class="sw" data-p="edit" ${i.a!==false?'checked':''} data-i="${i.id}" onchange="tog(this.dataset.i,this.checked)"><span>متاح</span></label><button class="btn o s" data-p="edit" data-h="1" data-i="${i.id}" onclick="itemM(this.dataset.i)">تعديل</button><button class="btn r s" data-p="delete" data-h="1" data-i="${i.id}" onclick="delI(this.dataset.i)">حذف</button></div></div>`).join('')||'<div class="em"><p>لا توجد منتجات مطابقة</p></div>'}
 function lst(){const b=B(),l=b.items.filter(i=>(!q||i.n.includes(q))&&(!fc||i.c==fc)&&(fs=='all'||(fs=='on')==(i.a!==false)));$('#pl').innerHTML=rows(l);gate()}
 /* ---------- إجراءات ---------- */
 function addC(){const v=$('#nc').value.trim(),b=B();if(v&&!b.cats.includes(v)){b.cats.push(v);sv();draw()}}
 function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات الفئة أولاً');return}if(!confirm('حذف الفئة «'+c+'»؟'))return;b.cats=b.cats.filter(x=>x!=c);if(b.cimg)delete b.cimg[c];sv();draw()}
-function tog(id,v){B().items.find(i=>i.id==id).a=v;sv()}
+function tog(id,v){B().items.find(i=>i.id==id).a=v;sv();lst()}
 function delI(id){if(!confirm('حذف المنتج؟'))return;const b=B();b.items=b.items.filter(i=>i.id!=id);sv();draw()}
 function itemM(id){const b=B();MI=id?{...b.items.find(i=>i.id==id)}:{id:'',img:'',a:true};
  modal(`<h3>${id?'تعديل منتج':'إضافة منتج'}</h3><label>اسم المنتج</label><input id="mn" value="${e(MI.n)}"><label>الوصف</label><textarea id="md" rows="2">${e(MI.d)}</textarea>
@@ -149,13 +183,22 @@ function itemM(id){const b=B();MI=id?{...b.items.find(i=>i.id==id)}:{id:'',img:'
 function saveI(){const n=$('#mn').value.trim();if(!n){toast('اكتب اسم المنتج');return}const b=B();
  const o={...MI,id:MI.id||'i'+uid(),n,d:$('#md').value.trim(),p:Number($('#mp').value)||0,o:Number($('#mo').value)||0,c:$('#mc').value},k=b.items.findIndex(i=>i.id==o.id);
  if(k>=0)b.items[k]=o;else b.items.push(o);modal();sv();draw()}
-function tblM(){modal(`<h3>إضافة طاولة</h3><label>اسم الطاولة</label><input id="tn" placeholder="مثال: 1 ، VIP 2 ، خارجية 5"><div class="acts"><button class="btn" onclick="addT()">إضافة طاولة</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
-function addT(){const n=$('#tn').value.trim();if(!n)return;const b=B();(b.tables=b.tables||[]).push({id:'t'+uid(),name:n});modal();sv();draw()}
-function delT(id){if(!confirm('حذف الطاولة؟'))return;const b=B();b.tables=b.tables.filter(x=>x.id!=id);sv();draw()}
-const tl=x=>location.origin+'/?t='+encodeURIComponent(x.name)+'#'+B().id;
+function tblM(){modal(`<h3>إضافة طاولة</h3><label>اسم أو رقم الطاولة</label><input id="tn" placeholder="مثال: 1 ، VIP 2 ، خارجية 5">
+ <div class="hint">أو أضف مجموعة أرقام دفعة واحدة:</div><div style="display:flex;gap:10px"><input id="tf" type="number" inputmode="numeric" placeholder="من" min="1"><input id="tt" type="number" inputmode="numeric" placeholder="إلى" min="1"></div>
+ <div class="acts"><button class="btn" onclick="addT()">إضافة</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
+async function addT(){const b=B(),n=$('#tn').value.trim(),f=parseInt($('#tf').value),z=parseInt($('#tt').value);let names=[];
+ if(f>0&&z>=f)names=Array.from({length:Math.min(200,z-f+1)},(_,i)=>String(f+i));else if(n)names=[n.slice(0,30)];
+ names=names.filter(x=>!(b.tables||[]).some(t=>t.name==x));if(!names.length){toast('اكتب اسم طاولة جديد (أو مدى أرقام)');return}
+ (b.tables=b.tables||[]).push(...names.map(x=>({id:'t'+uid()+uid(),name:x})));modal();sv();draw();await flushNow();delete SG[b.id];draw()}
+async function delT(id){if(!confirm('حذف الطاولة؟ سيتوقف رمز QR الخاص بها.'))return;const b=B();b.tables=b.tables.filter(x=>x.id!=id);sv();draw()}
+const tl=x=>{const s=(SG[B().id]||{})[x.id];return s?location.origin+'/t/'+encodeURIComponent(B().id)+'/'+encodeURIComponent(x.id)+'/'+s:''};
+async function loadSig(){const b=B();if(SGL[b.id])return;SGL[b.id]=1;try{await flushNow();const r=await fetch('/api/qr',{method:'POST',headers:hdr(),body:JSON.stringify({b:b.id})});SG[b.id]=r.ok?(await r.json()).sigs:{};if(!r.ok)toast('ليس لديك صلاحية الطاولات')}catch(x){}SGL[b.id]=0;if(pg=='tables')draw()}
 function cp(id){const x=B().tables.find(t=>t.id==id);navigator.clipboard.writeText(tl(x)).then(()=>toast('تم نسخ الرابط'),()=>toast('تعذر النسخ'))}
-function dl(id){const x=B().tables.find(t=>t.id==id),c=document.querySelector('#qr-'+id+' canvas');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='table-'+x.name+'.png';a.click()}
-function qrs(){if(pg!='tables'||typeof QRCode=='undefined')return;(B().tables||[]).forEach(x=>new QRCode($('#qr-'+x.id),{text:tl(x),width:200,height:200,colorDark:'#0f172a',colorLight:'#ffffff'}))}
+function qpng(url){const M=QR.make(url),n=M.length,k=10,q=4,c=document.createElement('canvas');c.width=c.height=(n+q*2)*k;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.fillStyle='#000';for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(M[y][x])g.fillRect((x+q)*k,(y+q)*k,k,k);return c.toDataURL('image/png')}
+function dl(id){const x=B().tables.find(t=>t.id==id),u=tl(x);if(!u)return;const a=document.createElement('a');a.href=qpng(u);a.download='table-'+x.name+'.png';a.click()}
+function qrs(){if(pg!='tables'||typeof QR=='undefined')return;(B().tables||[]).forEach(x=>{const u=tl(x),el=$('#qr-'+x.id);if(u&&el)el.innerHTML=QR.svg(u,200)})}
+function printQ(){const b=B(),L=(b.tables||[]).filter(x=>tl(x));if(!L.length){toast('جارٍ تجهيز الرموز…');return}
+ const w=document.createElement('div');w.className='qrw';w.innerHTML=`<div class="tb2"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button><button onclick="this.closest('.qrw').remove()">إغلاق</button></div><div class="qg">${L.map(x=>`<div class="qc">${QR.svg(tl(x),220)}<b>طاولة ${e(x.name)}</b><small>${e(D.name)}</small><small>${e(b.name)}</small></div>`).join('')}</div>`;document.body.appendChild(w)}
 function offM(){modal(`<h3>إضافة خصم</h3><label>اسم العرض</label><input id="on" placeholder="مثلاً: عرض العيد، خصم الجمعة">
  <label>النوع</label><select id="ot"><option value="pct">نسبة (٪)</option><option value="fix">مبلغ ثابت (د.ع)</option></select>
  <label>القيمة</label><input id="ov" type="number" inputmode="numeric">
@@ -170,9 +213,9 @@ function rmO(id){B().offers=B().offers.filter(o=>o.id!=id);sv();draw()}
 function rmOff(id){const i=B().items.find(x=>x.id==id);i.p=i.o;i.o=0;sv();draw()}
 function addB(){D.branches.push({id:'b'+uid(),name:'فرع جديد',wa:'',cats:['عام'],items:[],tables:[]});bi=D.branches.length-1;sv();draw()}
 function delB(i){if(D.branches.length<2){toast('يجب بقاء فرع واحد');return}if(!confirm('حذف الفرع وكل منتجاته؟'))return;D.branches.splice(i,1);bi=0;sv();draw()}
-async function upVid(f){if(!f)return;toast('جارٍ رفع الفيديو…');try{const r=await fetch('/api/upload?ext='+encodeURIComponent((f.name.split('.').pop()||'mp4').slice(0,5)),{method:'POST',headers:{'x-admin-token':TK},body:f}),j=await r.json();if(!r.ok)throw 0;D.vid=j.url;sv();draw()}catch(x){toast('فشل الرفع')}}
+async function upVid(f){if(!f)return;toast('جارٍ رفع الفيديو…');try{D.vid=await up(f,(f.name.split('.').pop()||'mp4').toLowerCase().replace('jpeg','jpg').slice(0,5));sv();draw()}catch(x){toast('فشل الرفع — تأكد أن الفيديو mp4 وأقل من 60 ميغا')}}
 function modal(h){$('#m').innerHTML=h?`<div class="m" onclick="if(event.target==this)modal()"><div>${h}</div></div>`:''}
-function out(){sessionStorage.removeItem('tk');TK='';ME=null;U=[];location.hash='';draw()}
+function out(){try{localStorage.removeItem('tk')}catch(x){}TK='';ME=null;U=[];location.hash='';draw()}
 /* ---------- المستخدمون ---------- */
 const PERMS=['info','add','edit','delete','offers','tables','branches'];
 const PL={info:['المعلومات','تعديل معلومات المطعم والسمات والتواصل'],add:['إضافة','إضافة منتجات وفئات'],edit:['تعديل','تعديل المنتجات والفئات والأسعار والصور'],delete:['حذف','حذف المنتجات والفئات'],offers:['العروض','إدارة العروض والخصومات'],tables:['الطاولات','إدارة الطاولات ورمز QR'],branches:['الفروع','إضافة وحذف الفروع']};
@@ -188,16 +231,31 @@ function usrM(id){const u=id?U.find(x=>x.id==id):{name:'',email:'',perms:[],acti
 async function saveU(){const b={id:$('#ui').value||undefined,name:$('#un').value.trim(),email:$('#ue').value.trim(),password:$('#up').value,perms:[...document.querySelectorAll('#pc input:checked')].map(x=>x.value),active:$('#ua').checked};
  const r=await fetch('/api/users',{method:'POST',headers:hdr(),body:JSON.stringify(b)});if(r.ok){modal();toast('تم الحفظ ✓');loadU()}else{const j=await r.json().catch(()=>({}));toast(j.error||'تعذر الحفظ')}}
 async function delU(id){if(!confirm('حذف المستخدم؟'))return;await fetch('/api/users/'+id,{method:'DELETE',headers:hdr()});loadU()}
+/* ---------- الطلبات والنسخ الاحتياطي ---------- */
+async function loadO(f){if(!TK)return;try{const r=await fetch('/api/orders?b='+encodeURIComponent(B().id),{headers:hdr()});if(!r.ok)return;const L=await r.json(),ids=L.map(o=>o.id);
+ if(seen&&seen.b==B().id&&ids.some(x=>!seen.ids.includes(x))&&pg!='orders')toast('🔔 وصل طلب جديد');seen={b:B().id,ids};OR=L;if(pg=='orders')draw()}catch(x){}}
+async function delO(id){if(!confirm('حذف هذا الطلب؟'))return;const r=await fetch('/api/orders/'+encodeURIComponent(id),{method:'DELETE',headers:hdr()});if(r.ok){OR=OR.filter(o=>o.id!=id);draw()}else toast('ليس لديك صلاحية الحذف')}
+async function loadBk(){try{const r=await fetch('/api/backups',{headers:hdr()});if(r.ok){BK=await r.json();if(pg=='backup')draw()}}catch(x){}}
+async function mkBk(){const r=await fetch('/api/backups',{method:'POST',headers:hdr()});toast(r.ok?'تم إنشاء النسخة ✓':'تعذر الإنشاء');loadBk()}
+async function rsBk(id){if(!confirm('استعادة هذه النسخة ونشرها للجميع؟ (تُحفظ نسخة من الوضع الحالي أولاً)'))return;toast('جارٍ الاستعادة…');const r=await fetch('/api/backups/'+id+'/restore',{method:'POST',headers:hdr()});if(r.ok){SG={};await reload();await loadBk();toast('تمت الاستعادة والنشر ✓')}else toast('تعذرت الاستعادة')}
+async function dlBk(btn){btn.disabled=true;toast('جارٍ تجهيز النسخة…');try{const r=await fetch('/api/backup',{headers:hdr()});if(!r.ok)throw 0;const b=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='menu-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e4);toast('تم التنزيل ✓')}catch(x){toast('تعذر التنزيل')}btn.disabled=false}
+async function restoreF(btn){const f=$('#rf').files[0];if(!f){toast('اختر ملف النسخة أولاً');return}if(!confirm('سيتم استبدال كل البيانات الحالية بمحتوى هذا الملف ونشرها للجميع. متابعة؟'))return;
+ btn.disabled=true;toast('جارٍ الاستيراد… قد يستغرق دقيقة');try{const txt=await f.text();if(txt.trim()[0]!='{')throw 0;const r=await fetch('/api/restore',{method:'POST',headers:hdr(),body:txt});if(r.ok){SG={};bi=0;await reload();await loadBk();toast('تم الاستيراد والنشر ✓')}else{const j=await r.json().catch(()=>({}));toast(j.error||'تعذر الاستيراد ('+r.status+')')}}catch(x){toast('الملف غير صالح')}btn.disabled=false}
+/* مزامنة مباشرة: أي تعديل من مستخدم آخر يظهر هنا تلقائياً */
+let pc=0;async function poll(){if(pc||!TK||!ME||!D||document.hidden)return;pc=1;try{const j=await (await fetch('/api/v',{cache:'no-store'})).json();
+ const a=document.activeElement,typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!='checkbox';
+ if(j.v!==D._v&&!busy&&!tmr&&!typing&&!$('#m').innerHTML)await reload();loadO()}catch(x){}pc=0}
+setInterval(poll,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 /* ---------- الواجهة ---------- */
 function login(){return `<div class="lg"><div class="cd"><div style="font-size:40px">🔐</div><h1 style="font-size:26px">لوحة التحكم</h1><p class="sub">سجّل الدخول بالبريد والرمز</p><input id="em" dir="ltr" autocomplete="username" placeholder="البريد الإلكتروني" style="text-align:right"><div class="pw" style="margin-top:12px"><input id="pw" type="password" autocomplete="current-password" placeholder="الرمز" onkeydown="if(event.key=='Enter')doLogin()"><button onclick="const p=$('#pw');p.type=p.type=='password'?'text':'password'">👁</button></div><button class="btn" style="width:100%;margin-top:16px;padding:13px" onclick="doLogin()">دخول</button><p><a href="/" style="color:var(--gr)">العودة للمنيو</a></p></div></div>`}
-async function doLogin(){const email=$('#em').value.trim(),password=$('#pw').value;try{const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(r.ok){TK=j.token;ME=j.user;sessionStorage.setItem('tk',TK);draw();if(pg=='users'&&ME.owner)loadU()}else toast(r.status==429?'محاولات كثيرة، انتظر قليلاً':'البريد أو الرمز غير صحيح')}catch(x){toast('تعذر الاتصال')}}
+async function doLogin(){const email=$('#em').value.trim(),password=$('#pw').value;try{const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email,password})}),j=await r.json();if(r.ok){TK=j.token;ME=j.user;try{localStorage.setItem('tk',TK)}catch(x){}draw();if(pg=='users'&&ME.owner)loadU()}else toast(r.status==429?'محاولات كثيرة، انتظر قليلاً':'البريد أو الرمز غير صحيح')}catch(x){toast('تعذر الاتصال')}}
 function draw(){
  if(!TK||!D||!ME){$('#app').innerHTML=login();return}
- if(!P[pg]||(pg=='users'&&!ME.owner))pg='home';
+ if(!P[pg]||(OWN.includes(pg)&&!ME.owner))pg='home';
  const cur=NAV.find(n=>n[0]==pg);
  $('#app').innerHTML=`<div class="top"><button class="burger" onclick="dro=1;draw()">☰</button><h2>${e(D.name)}</h2>${D.branches.length>1?`<select onchange="bi=+this.value;fc='';draw()">${D.branches.map((b,i)=>`<option value="${i}" ${i==bi?'selected':''}>${e(b.name)}</option>`).join('')}</select>`:''}</div>
  <div class="bk ${dro?'on':''}" onclick="dro=0;draw()"></div>
- <aside class="dr ${dro?'on':''}"><div class="brand"><i>M</i>لوحة التحكم</div><div class="slug">${e(B().id)}</div><div class="nv">${NAV.filter(n=>n[0]!='users'||ME.owner).map(n=>`<button class="${n[0]==pg?'on':''}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div><div class="lo">${e(ME.name)}<button onclick="out()">تسجيل الخروج</button></div></aside>
+ <aside class="dr ${dro?'on':''}"><div class="brand"><i>M</i>لوحة التحكم</div><div class="slug">${e(B().id)}</div><div class="nv">${NAV.filter(n=>!OWN.includes(n[0])||ME.owner).map(n=>`<button class="${n[0]==pg?'on':''}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div><div class="lo">${e(ME.name)}<button onclick="out()">تسجيل الخروج</button></div></aside>
  <main>${P[pg]()}</main>`;
  qrs();gate();
 }
