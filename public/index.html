@@ -165,7 +165,7 @@ function adm0(){
  <input id="fo" type="number" inputmode="numeric" placeholder="السعر قبل الخصم (اختياري)" value="${F&&F.o||''}"><div class="row"><input id="fp" type="number" inputmode="numeric" placeholder="السعر" value="${F?F.p:''}"><select id="fc">${b.cats.map(c=>`<option ${F&&F.c==c||!F&&c==cat?'selected':''}>${e(c)}</option>`).join('')}</select></div>
  <input type="file" accept="image/*" onchange="img(this)"><div id="pv">${F&&F.img?`<img class="im" src="${F.img}" alt="">`:''}</div>
  <button class="b p" style="width:100%;margin-top:8px" onclick="saveI()">${F&&F.id?'تحديث المنتج':'إضافة المنتج'}</button></div>
- ${b.items.map(i=>`<div class="it">${i.img?`<img class="im" style="width:56px;height:56px" src="${i.img}" alt="">`:'<div class="im" style="width:56px;height:56px">🍽</div>'}<div class="in"><b>${e(i.n)}</b><div class="d">${e(i.c)} · ${money(i.p)}</div><button class="lk" onclick="edI('${i.id}')">تعديل</button> &nbsp; <button class="lk" style="color:#d33" onclick="delI('${i.id}')">حذف</button></div></div>`).join('')}
+ ${b.items.map(i=>`<div class="it"><label style="position:relative;flex:none;cursor:pointer;display:block;width:56px;height:56px">${i.img?`<img class="im" style="width:56px;height:56px" src="${i.img}" alt="">`:'<div class="im" style="width:56px;height:56px">🍽</div>'}<span style="position:absolute;bottom:-4px;left:-4px;background:var(--ac);color:#111;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px">📷</span><input type="file" accept="image/*" hidden onchange="itemimg(this,'${i.id}')"></label><div class="in"><b>${e(i.n)}</b><div class="d">${e(i.c)} · ${money(i.p)}</div><button class="lk" onclick="edI('${i.id}')">تعديل</button> &nbsp; <button class="lk" style="color:#d33" onclick="delI('${i.id}')">حذف</button></div></div>`).join('')}
  </div></div>`;
 }
 function b_(v,k){B()[k]=v}
@@ -185,6 +185,7 @@ function saveI(){
 }
 function edI(id){F={...B().items.find(i=>i.id==id)};adm(1)}
 function delI(id){const b=B();b.items=b.items.filter(i=>i.id!=id);adm()}
+function itemimg(inp,id){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,480/Math.max(m.width,m.height)),k=document.createElement('canvas');k.width=m.width*s;k.height=m.height*s;k.getContext('2d').drawImage(m,0,0,k.width,k.height);const it=B().items.find(x=>x.id==id);if(!it)return;it.img=k.toDataURL('image/jpeg',.72);adm();toast('تمت إضافة الصورة — اضغط حفظ ونشر')};m.src=r.result};r.readAsDataURL(f)}
 function catimg(inp){const f=inp.files[0],c=inp.dataset.c;if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,360/Math.max(m.width,m.height)),k=document.createElement('canvas');k.width=m.width*s;k.height=m.height*s;k.getContext('2d').drawImage(m,0,0,k.width,k.height);const b=B();(b.catImg=b.catImg||{})[c]=k.toDataURL('image/jpeg',.75);adm();toast('تمت إضافة صورة القسم — اضغط حفظ ونشر')};m.src=r.result};r.readAsDataURL(f)}
 function rmCi(c){const b=B();if(b.catImg)delete b.catImg[c];adm()}
 function parseTables(s){s=s.trim();if(/^\d+$/.test(s))return Array.from({length:Math.min(300,+s)},(_,i)=>String(i+1));
