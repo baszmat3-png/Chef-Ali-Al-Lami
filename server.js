@@ -1,151 +1,128 @@
 const express = require('express'), fs = require('fs'), path = require('path'), crypto = require('crypto');
 const app = express();
-const DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
-function useSB0() { return !!((process.env.SUPABASE_URL && process.env.SUPABASE_KEY) || process.env.DATABASE_URL); }
-const FILE = path.join(DIR, 'menu.json'), UP = path.join(DIR, 'uploads');
-fs.mkdirSync(UP, { recursive: true });
-if (!useSB0() && !fs.existsSync(FILE)) fs.copyFileSync(path.join(__dirname, 'seed.json'), FILE);
-
-// ---- تخزين دائم اختياري عبر Supabase (مجاني). بدون المتغيرات يستخدم الملفات المحلية ----
-const SB = (process.env.SUPABASE_URL || '').replace(/\/+$/, ''), SK = process.env.SUPABASE_KEY || '', BUCKET = 'uploads';
-const sbH = (x = {}) => ({ apikey: SK, Authorization: 'Bearer ' + SK, ...x });
-const useSB = !!(SB && SK);
-
-// ---- تخزين عبر Postgres (مثل Render Postgres) عند ضبط DATABASE_URL ----
-let pool = null, pgReady = null;
-if (process.env.DATABASE_URL && !useSB) {
-  const { Pool } = require('pg');
-  const local = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
-  pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: local ? false : { rejectUnauthorized: false }, max: 3 });
-  pgReady = pool.query(`create table if not exists kv (id text primary key, data jsonb not null);
-    create table if not exists files (name text primary key, mime text not null, data bytea not null)`);
+let DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const writable = d => { try { fs.mkdirSync(path.join(d, 'uploads'), { recursive: true }); fs.accessSync(d, fs.constants.W_OK); return true; } catch { return false; } };
+if (!writable(DIR)) {
+  console.warn('⚠️  لا يمكن الكتابة في ' + DIR + ' (لا يوجد Disk مربوط). سيتم استخدام مجلد مؤقت — التعديلات تضيع عند إعادة التشغيل.');
+  DIR = path.join(__dirname, 'data'); fs.mkdirSync(path.join(DIR, 'uploads'), { recursive: true });
 }
-async function loadMenu() {
-  if (pool) {
-    await pgReady;
-    const r = await pool.query("select data from kv where id='menu'");
-    if (r.rows.length) return JSON.stringify(r.rows[0].data);
-    const seed = fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8');
-    await saveMenu(JSON.parse(seed));
-    return seed;
-  }
-  if (useSB) {
-    const r = await fetch(`${SB}/rest/v1/kv?id=eq.menu&select=data`, { headers: sbH() });
-    if (!r.ok) throw new Error('supabase read ' + r.status + ' ' + await r.text());
-    const rows = await r.json();
-    if (rows.length) return JSON.stringify(rows[0].data);
-    const seed = fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8');
-    await saveMenu(JSON.parse(seed));
-    return seed;
-  }
-  return fs.readFileSync(FILE, 'utf8');
-}
-async function saveMenu(d) {
-  if (pool) {
-    await pgReady;
-    await pool.query("insert into kv(id,data) values('menu',$1) on conflict (id) do update set data=excluded.data", [JSON.stringify(d)]);
-    return;
-  }
-  if (useSB) {
-    const r = await fetch(`${SB}/rest/v1/kv?on_conflict=id`, {
-      method: 'POST',
-      headers: sbH({ 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
-      body: JSON.stringify({ id: 'menu', data: d })
-    });
-    if (!r.ok) throw new Error('supabase write ' + r.status + ' ' + await r.text());
-    return;
-  }
-  const tmp = FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(d));
-  fs.renameSync(tmp, FILE);
-}
-const MIME = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
-async function saveFile(name, ext, buf) {
-  if (pool) {
-    await pgReady;
-    await pool.query('insert into files(name,mime,data) values($1,$2,$3)', [name, MIME[ext] || 'application/octet-stream', buf]);
-    return '/uploads/' + name;
-  }
-  if (useSB) {
-    const r = await fetch(`${SB}/storage/v1/object/${BUCKET}/${name}`, {
-      method: 'POST', headers: sbH({ 'Content-Type': MIME[ext] || 'application/octet-stream' }), body: buf
-    });
-    if (!r.ok) throw new Error('supabase upload ' + r.status + ' ' + await r.text());
-    return `${SB}/storage/v1/object/public/${BUCKET}/${name}`;
-  }
-  fs.writeFileSync(path.join(UP, name), buf);
-  return '/uploads/' + name;
-}
-
+const FILE = path.join(DIR, 'menu.json'), UP = path.join(DIR, 'uploads'), UF = path.join(DIR, 'users.json');
+if (!fs.existsSync(FILE)) fs.copyFileSync(path.join(__dirname, 'seed.json'), FILE);
 const PASS = process.env.ADMIN_PASSWORD || 'admin123';
+const OWNER = String(process.env.ADMIN_EMAIL || 'admin').trim().toLowerCase();
 if (!process.env.ADMIN_PASSWORD) console.warn('⚠️  ADMIN_PASSWORD غير مضبوط — كلمة المرور الحالية admin123، غيّرها فوراً.');
 
-const ok = req => {
-  const a = Buffer.from(String(req.get('x-admin-token') || '')), b = Buffer.from(PASS);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-};
-const auth = (req, res, next) => ok(req) ? next() : res.status(401).json({ error: 'unauthorized' });
+const PERMS = ['info', 'add', 'edit', 'delete', 'offers', 'tables', 'branches'];
+const seq = (a, b) => { a = Buffer.from(String(a)); b = Buffer.from(String(b)); return a.length === b.length && crypto.timingSafeEqual(a, b); };
+const rd = f => { try { return JSON.parse(fs.readFileSync(f)); } catch { return null; } };
+const wr = (f, d) => { const t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(d)); fs.renameSync(t, f); };
+const users = () => rd(UF) || [];
+const hash = (pw, salt) => crypto.scryptSync(pw, salt, 32).toString('hex');
+const pub = u => ({ id: u.id, name: u.name, email: u.email, perms: u.perms, owner: !!u.owner, active: u.active !== false });
+const OWNER_USER = { id: 'owner', name: 'المالك', email: OWNER, perms: PERMS, owner: true, active: true };
 
-app.get('/api/menu', async (req, res) => {
-  try { res.set('Cache-Control', 'no-store').type('json').send(await loadMenu()); }
-  catch (e) { console.error(e); res.status(500).json({ error: 'storage' }); }
+const SECRET = crypto.createHash('sha256').update('tok|' + PASS).digest();
+const sign = p => { const b = Buffer.from(JSON.stringify(p)).toString('base64url'); return b + '.' + crypto.createHmac('sha256', SECRET).update(b).digest('base64url'); };
+function verify(t) {
+  const [b, s] = String(t || '').split('.'); if (!b || !s) return null;
+  if (!seq(s, crypto.createHmac('sha256', SECRET).update(b).digest('base64url'))) return null;
+  try { const p = JSON.parse(Buffer.from(b, 'base64url')); return p.x > Date.now() ? p : null; } catch { return null; }
+}
+function who(req) {
+  const t = req.get('x-admin-token') || '';
+  if (t && seq(t, PASS)) return OWNER_USER;            // توافق مع النسخة القديمة
+  const p = verify(t); if (!p) return null;
+  if (p.u === 'owner') return OWNER_USER;
+  const u = users().find(x => x.id === p.u);
+  return u && u.active !== false ? pub(u) : null;
+}
+const auth = need => (req, res, next) => {
+  const u = who(req); if (!u) return res.status(401).json({ error: 'unauthorized' });
+  if (need === 'owner' ? !u.owner : (need && !u.owner && !u.perms.includes(need))) return res.status(403).json({ error: 'forbidden' });
+  req.user = u; next();
+};
+const fails = new Map();
+const limited = k => { const n = Date.now(), a = (fails.get(k) || []).filter(t => n - t < 9e5); fails.set(k, a); return a.length >= 10; };
+
+/* ---- ما الصلاحيات المطلوبة لتغيير من بيانات إلى أخرى ---- */
+const J = JSON.stringify;
+const nz = v => (v == null || v === '' || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && !Object.keys(v).length)) ? null : v;
+const same = (a, b) => J(nz(a)) === J(nz(b));
+const byId = l => Object.fromEntries((l || []).map(x => [x.id, x]));
+function need(o, n) {
+  const r = new Set(), keys = (a, b) => new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of keys(o, n)) if (k !== 'branches' && k !== '_v' && !same(o[k], n[k])) r.add('info');
+  const ob = byId(o.branches), nb = byId(n.branches);
+  if (Object.keys(nb).some(i => !ob[i]) || Object.keys(ob).some(i => !nb[i])) r.add('branches');
+  for (const id in nb) {
+    if (!ob[id]) continue;
+    const a = ob[id], b = nb[id];
+    for (const k of keys(a, b)) {
+      if (same(a[k], b[k])) continue;
+      if (k === 'items') {
+        const ai = byId(a.items), bi = byId(b.items);
+        for (const i in bi) { if (!ai[i]) r.add('add'); else if (J(ai[i]) !== J(bi[i])) r.add('edit'); }
+        for (const i in ai) if (!bi[i]) r.add('delete');
+      } else if (k === 'cats') {
+        const A = a.cats || [], B = b.cats || [];
+        if (B.some(c => !A.includes(c))) r.add('add');
+        if (A.some(c => !B.includes(c))) r.add('delete');
+      } else if (k === 'cimg') r.add('edit');
+      else if (k === 'offers') r.add('offers');
+      else if (k === 'tables') r.add('tables');
+      else r.add('info');
+    }
+  }
+  return r;
+}
+
+const js = express.json({ limit: '20kb' });
+app.post('/api/login', js, (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase(), pw = String(req.body.password || '');
+  const key = req.ip + '|' + email;
+  if (limited(key)) return res.status(429).json({ error: 'many' });
+  let u = null;
+  if ((!email || email === OWNER) && seq(pw, PASS)) u = OWNER_USER;
+  else { const x = users().find(v => v.email === email && v.active !== false); if (x && seq(hash(pw, x.salt), x.hash)) u = pub(x); }
+  if (!u) { fails.get(key).push(Date.now()); return res.status(401).json({ error: 'bad' }); }
+  res.json({ token: sign({ u: u.id, x: Date.now() + 7 * 864e5 }), user: u });
 });
-app.post('/api/login', auth, (req, res) => res.json({ ok: true }));
-app.post('/api/menu', auth, express.json({ limit: '50mb' }), async (req, res) => {
-  const d = req.body;
+app.get('/api/me', auth(), (req, res) => res.json(req.user));
+app.get('/api/users', auth('owner'), (req, res) => res.json(users().map(pub)));
+app.post('/api/users', auth('owner'), js, (req, res) => {
+  const b = req.body || {}, name = String(b.name || '').trim().slice(0, 60), email = String(b.email || '').trim().toLowerCase().slice(0, 100), pw = String(b.password || '');
+  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'اكتب الاسم وبريداً صحيحاً' });
+  if (email === OWNER) return res.status(409).json({ error: 'هذا البريد محجوز للمالك' });
+  const L = users(); let u = b.id ? L.find(x => x.id === b.id) : null;
+  if (L.some(x => x.email === email && x !== u)) return res.status(409).json({ error: 'البريد مستخدم مسبقاً' });
+  if (!u) { if (pw.length < 6) return res.status(400).json({ error: 'الرمز 6 أحرف على الأقل' }); u = { id: crypto.randomBytes(6).toString('hex') }; L.push(u); }
+  else if (pw && pw.length < 6) return res.status(400).json({ error: 'الرمز 6 أحرف على الأقل' });
+  u.name = name; u.email = email; u.active = b.active !== false;
+  u.perms = (Array.isArray(b.perms) ? b.perms : []).filter(p => PERMS.includes(p));
+  if (pw) { u.salt = crypto.randomBytes(16).toString('hex'); u.hash = hash(pw, u.salt); }
+  wr(UF, L); res.json(pub(u));
+});
+app.delete('/api/users/:id', auth('owner'), (req, res) => { wr(UF, users().filter(x => x.id !== req.params.id)); res.json({ ok: true }); });
+
+app.get('/api/menu', (req, res) => { res.set('Cache-Control', 'no-store').type('json').send(fs.readFileSync(FILE)); });
+app.post('/api/menu', auth(), express.json({ limit: '50mb' }), (req, res) => {
+  const d = req.body, cur = rd(FILE) || { branches: [] };
   if (!d || !Array.isArray(d.branches)) return res.status(400).json({ error: 'bad data' });
-  try { await saveMenu(d); res.json({ ok: true }); }
-  catch (e) { console.error(e); res.status(500).json({ error: 'storage' }); }
+  if ((d._v | 0) !== (cur._v | 0)) return res.status(409).json({ error: 'conflict' });
+  if (!req.user.owner) {
+    const miss = [...need(cur, d)].filter(p => !req.user.perms.includes(p));
+    if (miss.length) return res.status(403).json({ error: 'forbidden', need: miss });
+  }
+  d._v = (cur._v | 0) + 1;
+  wr(FILE, d);
+  res.json({ ok: true, v: d._v });
 });
-app.post('/api/upload', auth, express.raw({ type: () => true, limit: '60mb' }), async (req, res) => {
+app.post('/api/upload', auth('info'), express.raw({ type: () => true, limit: '60mb' }), (req, res) => {
   const ext = String(req.query.ext || 'mp4').replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 5);
   if (!['mp4', 'webm', 'mov', 'jpg', 'jpeg', 'png', 'webp'].includes(ext)) return res.status(400).json({ error: 'type' });
   const name = crypto.randomBytes(8).toString('hex') + '.' + ext;
-  try { res.json({ url: await saveFile(name, ext, req.body) }); }
-  catch (e) { console.error(e); res.status(500).json({ error: 'storage' }); }
-});
-if (pool) app.get('/uploads/:name', async (req, res) => {
-  try {
-    await pgReady;
-    const r = await pool.query('select mime,data from files where name=$1', [req.params.name]);
-    if (!r.rows.length) return res.status(404).end();
-    const buf = r.rows[0].data, total = buf.length;
-    res.set({ 'Cache-Control': 'public, max-age=2592000', 'Accept-Ranges': 'bytes', 'Content-Type': r.rows[0].mime });
-    const m = /^bytes=(\d*)-(\d*)$/.exec(req.get('range') || '');
-    if (m && (m[1] || m[2])) {   // دعم Range ليعمل الفيديو على الجوال
-      let a = m[1] === '' ? Math.max(0, total - Number(m[2])) : Number(m[1]);
-      let b = m[1] === '' || m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1);
-      if (a > b || a >= total) return res.status(416).set('Content-Range', `bytes */${total}`).end();
-      return res.status(206).set({ 'Content-Range': `bytes ${a}-${b}/${total}`, 'Content-Length': b - a + 1 }).end(buf.subarray(a, b + 1));
-    }
-    res.send(buf);
-  } catch (e) { console.error(e); res.status(500).end(); }
-});
-// رابط الإدارة السري: يُضبط بالمتغير ADMIN_PATH (مثلاً my-secret-panel). لا يظهر أي رابط أو زر للإدارة في المنيو العام.
-const ADMIN_PATH = String(process.env.ADMIN_PATH || ('panel-' + crypto.createHash('sha256').update('p:' + PASS).digest('hex').slice(0, 10)))
-  .replace(/[^a-zA-Z0-9_-]/g, '');
-if (!process.env.ADMIN_PATH) console.warn('⚠️  ADMIN_PATH غير مضبوط — رابط الإدارة الحالي: /' + ADMIN_PATH);
-app.get('/' + ADMIN_PATH, (req, res) => {
-  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace('<head>', '<head><script>window.__ADM=1</script>');
-  res.set({ 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' }).type('html').send(html);
-});
-// ---- روابط الطاولات الموقّعة: رقم الطاولة داخل الرابط مع توقيع HMAC لا يمكن تزويره ----
-const TSECRET = process.env.TABLE_SECRET || ('tbl:' + PASS);
-const tsig = (b, t) => crypto.createHmac('sha256', TSECRET).update(b + '|' + t).digest('base64url').slice(0, 12);
-const TOK = /^[\w\u0600-\u06FF-]{1,12}$/;
-const sigOk = (b, t, s) => { const x = Buffer.from(tsig(b, t)), y = Buffer.from(String(s)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
-app.get('/t/:b/:t/:s', (req, res) => {
-  const { b, t, s } = req.params;
-  if (!TOK.test(b) || !TOK.test(t) || !sigOk(b, t, s)) return res.redirect('/');
-  const data = JSON.stringify({ b, t }).replace(/</g, '\\u003c');
-  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace('<head>', '<head><script>window.__TBL=' + data + '</script>');
-  res.set('Cache-Control', 'no-store').type('html').send(html);
-});
-app.post('/api/qr', auth, express.json({ limit: '1mb' }), (req, res) => {
-  const { b, tables } = req.body || {};
-  if (!TOK.test(String(b)) || !Array.isArray(tables) || tables.length > 300) return res.status(400).json({ error: 'bad data' });
-  const items = tables.map(String).filter(t => TOK.test(t)).map(t => ({ t, s: tsig(b, t) }));
-  res.json({ items });
+  fs.writeFileSync(path.join(UP, name), req.body);
+  res.json({ url: '/uploads/' + name });
 });
 app.use('/uploads', express.static(UP, { maxAge: '30d' }));
 app.use(express.static(path.join(__dirname, 'public')));
