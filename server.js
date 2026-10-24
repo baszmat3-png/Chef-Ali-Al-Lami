@@ -121,6 +121,14 @@ if (pool) app.get('/uploads/:name', async (req, res) => {
     res.send(buf);
   } catch (e) { console.error(e); res.status(500).end(); }
 });
+// رابط الإدارة السري: يُضبط بالمتغير ADMIN_PATH (مثلاً my-secret-panel). لا يظهر أي رابط أو زر للإدارة في المنيو العام.
+const ADMIN_PATH = String(process.env.ADMIN_PATH || ('panel-' + crypto.createHash('sha256').update('p:' + PASS).digest('hex').slice(0, 10)))
+  .replace(/[^a-zA-Z0-9_-]/g, '');
+if (!process.env.ADMIN_PATH) console.warn('⚠️  ADMIN_PATH غير مضبوط — رابط الإدارة الحالي: /' + ADMIN_PATH);
+app.get('/' + ADMIN_PATH, (req, res) => {
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace('<head>', '<head><script>window.__ADM=1</script>');
+  res.set({ 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' }).type('html').send(html);
+});
 app.use('/uploads', express.static(UP, { maxAge: '30d' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.listen(process.env.PORT || 3000, () => console.log('Menu running on', process.env.PORT || 3000));

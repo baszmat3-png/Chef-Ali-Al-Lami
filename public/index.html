@@ -108,7 +108,7 @@ function render(){
  <div class="cs">${cs.map(c=>`<button class="ct ${c==cur?'on':''}" data-c="${e(c)}" style="${ci(b,c)?`background-image:linear-gradient(transparent 40%,rgba(0,0,0,.7)),url(${ci(b,c)})`:''}" onclick="go(this.dataset.c)">${e(c)}</button>`).join('')}</div>
  ${cur?(()=>{const l=b.items.filter(i=>i.c==cur);return `<h2 class="sh" id="sec"><i></i>${e(cur)} <small>(${l.length})</small></h2><div class="gr">${l.map(card).join('')}</div>`})():''}
  <h2 class="sh"><i></i>فروعنا 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${x.ad?`<div class="mu">📍 ${e(x.ad)}</div>`:''}${x.wa?`<a class="mu" dir="ltr" href="tel:${e(x.wa)}">📞 ${e(x.wa)}</a>`:''}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
- ${can?'':'<a class="lk" onclick="login()" style="display:block;text-align:center;margin:30px 0 10px;opacity:.5">⚙️ دخول الإدارة</a>'}
+ 
  ${cnt?`<div class="bar"><button onclick="sheet()">عرض الطلب (${cnt}) — ${money(tot)}</button></div>`:''}`;
  const q=document.querySelector('.cs');if(q)q.scrollLeft=px;
 }
@@ -177,5 +177,5 @@ const h0=location.hash.slice(1);
 (async()=>{try{D=await(await fetch('/api/menu')).json()}catch(x){}
  const hi=D.branches.findIndex(b=>b.id==h0);if(hi>=0){bi=hi;sp=0}
  TK=sessionStorage.getItem('tk')||'';if(TK){try{const r=await fetch('/api/login',{method:'POST',headers:{'x-admin-token':TK}});if(r.ok){can=true;art=true}}catch(x){}}
- render();if(h0=='admin')login()})();
+ render();if(window.__ADM&&!can)login()})();
 </script></body></html>
