@@ -109,7 +109,16 @@ if (pool) app.get('/uploads/:name', async (req, res) => {
     await pgReady;
     const r = await pool.query('select mime,data from files where name=$1', [req.params.name]);
     if (!r.rows.length) return res.status(404).end();
-    res.set('Cache-Control', 'public, max-age=2592000').type(r.rows[0].mime).send(r.rows[0].data);
+    const buf = r.rows[0].data, total = buf.length;
+    res.set({ 'Cache-Control': 'public, max-age=2592000', 'Accept-Ranges': 'bytes', 'Content-Type': r.rows[0].mime });
+    const m = /^bytes=(\d*)-(\d*)$/.exec(req.get('range') || '');
+    if (m && (m[1] || m[2])) {   // دعم Range ليعمل الفيديو على الجوال
+      let a = m[1] === '' ? Math.max(0, total - Number(m[2])) : Number(m[1]);
+      let b = m[1] === '' || m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1);
+      if (a > b || a >= total) return res.status(416).set('Content-Range', `bytes */${total}`).end();
+      return res.status(206).set({ 'Content-Range': `bytes ${a}-${b}/${total}`, 'Content-Length': b - a + 1 }).end(buf.subarray(a, b + 1));
+    }
+    res.send(buf);
   } catch (e) { console.error(e); res.status(500).end(); }
 });
 app.use('/uploads', express.static(UP, { maxAge: '30d' }));
