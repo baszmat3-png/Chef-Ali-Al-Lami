@@ -25,3 +25,7 @@ ADMIN_PASSWORD=كلمة_سر npm start
 2. من **Project Settings → API** انسخ `Project URL` ومفتاح `service_role`.
 3. في Render أضف المتغيرين `SUPABASE_URL` و`SUPABASE_KEY` (إلى جانب `ADMIN_PASSWORD`).
 بدون هذين المتغيرين يعمل الموقع بالتخزين المحلي (مؤقت على الخطة المجانية).
+
+## نشر مجاني مع Render Postgres
+`render.yaml` ينشئ قاعدة Postgres مجانية ويربطها بالخدمة عبر `DATABASE_URL`. البيانات والفيديوهات تُحفظ فيها.
+تنبيه: قاعدة Render المجانية تنتهي بعد 30 يوماً من إنشائها (14 يوم مهلة ثم تُحذف). نزّل نسخة من المنيو قبل ذلك أو رقّها لخطة مدفوعة.
