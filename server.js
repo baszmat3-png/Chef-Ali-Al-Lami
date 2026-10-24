@@ -129,6 +129,24 @@ app.get('/' + ADMIN_PATH, (req, res) => {
   const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace('<head>', '<head><script>window.__ADM=1</script>');
   res.set({ 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' }).type('html').send(html);
 });
+// ---- روابط الطاولات الموقّعة: رقم الطاولة داخل الرابط مع توقيع HMAC لا يمكن تزويره ----
+const TSECRET = process.env.TABLE_SECRET || ('tbl:' + PASS);
+const tsig = (b, t) => crypto.createHmac('sha256', TSECRET).update(b + '|' + t).digest('base64url').slice(0, 12);
+const TOK = /^[\w\u0600-\u06FF-]{1,12}$/;
+const sigOk = (b, t, s) => { const x = Buffer.from(tsig(b, t)), y = Buffer.from(String(s)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+app.get('/t/:b/:t/:s', (req, res) => {
+  const { b, t, s } = req.params;
+  if (!TOK.test(b) || !TOK.test(t) || !sigOk(b, t, s)) return res.redirect('/');
+  const data = JSON.stringify({ b, t }).replace(/</g, '\\u003c');
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace('<head>', '<head><script>window.__TBL=' + data + '</script>');
+  res.set('Cache-Control', 'no-store').type('html').send(html);
+});
+app.post('/api/qr', auth, express.json({ limit: '1mb' }), (req, res) => {
+  const { b, tables } = req.body || {};
+  if (!TOK.test(String(b)) || !Array.isArray(tables) || tables.length > 300) return res.status(400).json({ error: 'bad data' });
+  const items = tables.map(String).filter(t => TOK.test(t)).map(t => ({ t, s: tsig(b, t) }));
+  res.json({ items });
+});
 app.use('/uploads', express.static(UP, { maxAge: '30d' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.listen(process.env.PORT || 3000, () => console.log('Menu running on', process.env.PORT || 3000));

@@ -64,11 +64,19 @@ input,select,textarea{width:100%;font:inherit;padding:9px;border:1px solid var(-
 .bp{border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.35);color:#fff;border-radius:30px;padding:clamp(8px,1.6vh,13px) 24px;font:700 clamp(15px,2.3vh,18px) Tajawal,sans-serif;cursor:pointer}
 .bp.on{background:#fff;color:#111;border-color:#fff}
 .go{border:0;border-radius:36px;background:var(--ac);color:#111;padding:clamp(11px,2.2vh,18px) 54px;font:800 clamp(18px,2.8vh,22px) Tajawal,sans-serif;cursor:pointer;margin-top:1vh}
-</style></head><body>
+
+.qrw{position:fixed;inset:0;z-index:9;background:#fff;color:#000;overflow:auto;padding:12px}
+.qrw .tb{display:flex;gap:8px;margin-bottom:12px}.qrw .tb button{flex:1;padding:12px;border-radius:12px;border:1px solid #ccc;background:#f4f4f4;color:#000;font:700 16px Tajawal,sans-serif}
+.qg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.qc{border:2px solid #000;border-radius:14px;padding:12px;text-align:center;break-inside:avoid}
+.qc svg{width:100%;height:auto;max-width:220px}.qc b{display:block;font-size:26px}.qc small{color:#444;display:block}
+@media print{body>*:not(.qrw){display:none!important}.qrw{position:static;overflow:visible}.qrw .tb{display:none}.qg{grid-template-columns:repeat(3,1fr)}}
+</style><script src="/qr.js"></script></head><body>
 <div class="w" id="app"></div><div id="ov"></div><div id="t"></div>
 
 <script>
 let D={name:'',branches:[]};
+const TBL=window.__TBL||null;
 let TK='',sp=1,bi=0,cat='',cart={},can=false,art=null,F=null,arm=0;
 const $=s=>document.querySelector(s);
 const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -76,7 +84,7 @@ const money=n=>Number(n||0).toLocaleString('en-US')+' د.ع';
 const uid=()=>Math.random().toString(36).slice(2,8);
 const B=()=>D.branches[bi];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-function sel(){return D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
+function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
 function pickB(i){bi=i;cat='';cart={};render();if($('#ov').innerHTML)adm()}
 function socs(b){const s=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank" rel="noopener" style="background:${bg}">${t}</a>`:'';return `<div class="soc">${s('map','#2d2d33','📍 الموقع').replace('<a ','<a class="mp" ')}${s('tt','#000','♪')}${s('fb','#1877f2','f')}${s('ig','linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)','◎')}</div>`}
 function splash(){
@@ -113,14 +121,14 @@ function render(){
  ${cnt?`<div class="bar"><button onclick="sheet()">عرض الطلب (${cnt}) — ${money(tot)}</button></div>`:''}`;
  const q=document.querySelector('.cs');if(q)q.scrollLeft=px;
 }
-function ci(b,c){const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
+function ci(b,c){if(b.catImg&&b.catImg[c])return b.catImg[c];const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
 function logo(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,300/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);D.logo=c.toDataURL('image/jpeg',.8);toast('تم رفع الشعار')};m.src=r.result};r.readAsDataURL(f)}
 function add(id,d){cart[id]=Math.max(0,(cart[id]||0)+d);render()}
 function sheet(){
  const b=B(),ls=b.items.filter(i=>cart[i.id]);
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0);
  $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>طلبك — ${e(b.name)}</h1>${ls.map(i=>`<div class="row box"><span>${cart[i.id]}× ${e(i.n)}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div>`).join('')}
- <h3>المجموع: ${money(tot)}</h3><input id="tb" placeholder="رقم الطاولة (اختياري)"><input id="nm" placeholder="الاسم / رقم الهاتف"><textarea id="nt" rows="2" placeholder="ملاحظات"></textarea>
+ <h3>المجموع: ${money(tot)}</h3>${TBL?`<div class="box" style="font-weight:800;font-size:18px">🪑 طاولة رقم: ${e(TBL.t)}</div>`:''}<input id="nm" placeholder="الاسم *" autocomplete="name"><input id="ph" type="tel" inputmode="tel" placeholder="رقم الهاتف *" autocomplete="tel"><input id="ar" placeholder="${TBL?'المنطقة (اختياري)':'المنطقة / العنوان *'}"><textarea id="nt" rows="2" placeholder="ملاحظات"></textarea>
  <button class="b p" style="width:100%;padding:13px" onclick="send()">إرسال الطلب عبر واتساب 💬</button>
  <button class="b" style="width:100%;margin-top:8px" onclick="$('#ov').innerHTML=''">رجوع</button></div></div>`;
 }
@@ -129,8 +137,11 @@ function send(){
  let w=String(b.wa||'').replace(/\D/g,'');if(!w){toast('رقم واتساب الفرع غير مضاف');return}
  if(w[0]=='0')w='964'+w.slice(1);
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0),v=id=>$('#'+id).value.trim();
+ if(!v('nm')){toast('اكتب الاسم');$('#nm').focus();return}
+ if(v('ph').replace(/\D/g,'').length<7){toast('اكتب رقم هاتف صحيح');$('#ph').focus();return}
+ if(!TBL&&!v('ar')){toast('اكتب المنطقة');$('#ar').focus();return}
  let m=`🛎 طلب جديد — ${b.name}\n\n`+ls.map(i=>`${cart[i.id]}× ${i.n} — ${money(cart[i.id]*i.p)}`).join('\n')+`\n\nالمجموع: ${money(tot)}`;
- if(v('tb'))m+=`\nالطاولة: ${v('tb')}`;if(v('nm'))m+=`\nالاسم: ${v('nm')}`;if(v('nt'))m+=`\nملاحظات: ${v('nt')}`;
+ m+='\n';if(TBL)m+=`\n🪑 الطاولة: ${TBL.t}`;m+=`\n👤 الاسم: ${v('nm')}\n📞 الرقم: ${v('ph')}`;if(v('ar'))m+=`\n📍 المنطقة: ${v('ar')}`;if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
  const a=document.createElement('a');a.href='https://wa.me/'+w+'?text='+encodeURIComponent(m);a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
 }
 /* ---------- لوحة التحكم ---------- */
@@ -145,8 +156,10 @@ function adm0(){
  <div class="box"><b>بيانات الفرع</b><input value="${e(b.name)}" placeholder="اسم الفرع" oninput="b_(this.value,'name')"><input dir="ltr" value="${e(b.wa)}" placeholder="رقم واتساب الفرع 07xxxxxxxxx" oninput="b_(this.value,'wa')">
  <input value="${e(b.ad)}" placeholder="العنوان" oninput="b_(this.value,'ad')"><input value="${e(b.hr)}" placeholder="ساعات العمل (مثال: 11:00 ص – 11:30 م)" oninput="b_(this.value,'hr')"><input dir="ltr" value="${e(b.map)}" placeholder="رابط الموقع على الخريطة https://" oninput="b_(this.value,'map')"><input dir="ltr" value="${e(b.ig)}" placeholder="رابط انستغرام" oninput="b_(this.value,'ig')"><input dir="ltr" value="${e(b.fb)}" placeholder="رابط فيسبوك" oninput="b_(this.value,'fb')"><input dir="ltr" value="${e(b.tt)}" placeholder="رابط تيك توك" oninput="b_(this.value,'tt')"><div class="d" dir="ltr">رابط الفرع: #${b.id}</div>
  <button class="b r" style="margin-top:8px" onclick="delB()">${arm?'اضغط مرة ثانية للتأكيد':'حذف الفرع'}</button></div>
- <div class="box"><b>الأصناف (الأقسام)</b><div>${b.cats.map(c=>`<span class="chip">${e(c)}<button class="lk" data-c="${e(c)}" onclick="delC(this.dataset.c)">✕</button></span>`).join('')}</div>
+ <div class="box"><b>الأصناف (الأقسام)</b><div class="d">يمكنك إضافة صورة لكل قسم تظهر على زره في المنيو</div><div>${b.cats.map(c=>{const im=b.catImg&&b.catImg[c];return `<div class="row" style="align-items:center;gap:8px;margin:8px 0">${im?`<img class="im" style="width:48px;height:48px" src="${im}" alt="">`:'<div class="im" style="width:48px;height:48px">🖼</div>'}<b style="flex:1">${e(c)}</b><label class="b" style="flex:none;cursor:pointer">${im?'تغيير':'صورة'}<input type="file" accept="image/*" hidden data-c="${e(c)}" onchange="catimg(this)"></label>${im?`<button class="lk" data-c="${e(c)}" onclick="rmCi(this.dataset.c)">إزالة</button>`:''}<button class="lk" style="color:#d33" data-c="${e(c)}" onclick="delC(this.dataset.c)">✕</button></div>`}).join('')}</div>
  <div class="row"><input id="nc" placeholder="قسم جديد"><button class="b" style="flex:none" onclick="addC()">إضافة</button></div></div>
+ <div class="box"><b>🪑 باركود الطاولات</b><div class="d">أدخل عدد الطاولات (مثل 12) أو مدى (1-20) أو أسماء مفصولة بفاصلة (A1,A2,VIP). الباركود خاص بالفرع المحدد أعلاه، ورقم الطاولة فيه موقَّع ولا يمكن للزبون تغييره.</div>
+ <input id="tq" placeholder="مثال: 12 أو 1-20 أو A1,A2,VIP"><input id="to" dir="ltr" value="${e(location.origin)}"><button class="b p" style="width:100%;margin-top:6px" onclick="qrGen()">إنشاء الباركود وطباعته</button></div>
  <div class="box" id="pf"><b>${F&&F.id?'تعديل منتج':'إضافة منتج'}</b>
  <input id="fn" placeholder="اسم المنتج" value="${e(F?F.n:'')}"><textarea id="fd" rows="2" placeholder="الوصف">${e(F?F.d:'')}</textarea>
  <input id="fo" type="number" inputmode="numeric" placeholder="السعر قبل الخصم (اختياري)" value="${F&&F.o||''}"><div class="row"><input id="fp" type="number" inputmode="numeric" placeholder="السعر" value="${F?F.p:''}"><select id="fc">${b.cats.map(c=>`<option ${F&&F.c==c||!F&&c==cat?'selected':''}>${e(c)}</option>`).join('')}</select></div>
@@ -159,7 +172,7 @@ function b_(v,k){B()[k]=v}
 function addB(){D.branches.push({id:'b'+uid(),name:'فرع جديد',wa:'',cats:['عام'],items:[]});bi=D.branches.length-1;cat='';F=null;adm()}
 function delB(){if(D.branches.length<2){toast('يجب بقاء فرع واحد');return}if(!arm){arm=1;adm();return}arm=0;D.branches.splice(bi,1);bi=0;cat='';adm()}
 function addC(){const v=$('#nc').value.trim(),b=B();if(v&&!b.cats.includes(v)){b.cats.push(v);adm()}}
-function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات القسم أولاً');return}b.cats=b.cats.filter(x=>x!=c);adm()}
+function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات القسم أولاً');return}b.cats=b.cats.filter(x=>x!=c);if(b.catImg)delete b.catImg[c];adm()}
 function img(inp){
  const f=inp.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,480/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);
@@ -172,11 +185,24 @@ function saveI(){
 }
 function edI(id){F={...B().items.find(i=>i.id==id)};adm(1)}
 function delI(id){const b=B();b.items=b.items.filter(i=>i.id!=id);adm()}
+function catimg(inp){const f=inp.files[0],c=inp.dataset.c;if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,360/Math.max(m.width,m.height)),k=document.createElement('canvas');k.width=m.width*s;k.height=m.height*s;k.getContext('2d').drawImage(m,0,0,k.width,k.height);const b=B();(b.catImg=b.catImg||{})[c]=k.toDataURL('image/jpeg',.75);adm();toast('تمت إضافة صورة القسم — اضغط حفظ ونشر')};m.src=r.result};r.readAsDataURL(f)}
+function rmCi(c){const b=B();if(b.catImg)delete b.catImg[c];adm()}
+function parseTables(s){s=s.trim();if(/^\d+$/.test(s))return Array.from({length:Math.min(300,+s)},(_,i)=>String(i+1));
+ const m=/^(\d+)\s*[-–]\s*(\d+)$/.exec(s);if(m){const a=+m[1],z=Math.min(+m[2],a+299),o=[];for(let i=a;i<=z;i++)o.push(String(i));return o}
+ return s.split(/[,،\n]/).map(x=>x.trim()).filter(Boolean)}
+async function qrGen(){
+ const b=B(),list=parseTables($('#tq').value||'');if(!list.length){toast('اكتب عدد الطاولات');return}
+ if(list.some(t=>!/^[\w\u0600-\u06FF-]{1,12}$/.test(t))){toast('اسم الطاولة: حروف وأرقام فقط (حتى 12)');return}
+ const org=($('#to').value||location.origin).replace(/\/+$/,'');
+ try{const r=await fetch('/api/qr',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TK},body:JSON.stringify({b:b.id,tables:list})});if(!r.ok)throw 0;const j=await r.json();
+  const w=document.createElement('div');w.className='qrw';
+  w.innerHTML=`<div class="tb"><button onclick="window.print()">🖨 طباعة / حفظ PDF</button><button onclick="this.closest('.qrw').remove()">إغلاق</button></div><div class="qg">${j.items.map(x=>{const url=`${org}/t/${encodeURIComponent(b.id)}/${encodeURIComponent(x.t)}/${x.s}`;return `<div class="qc">${QR.svg(url,220)}<b>طاولة ${e(x.t)}</b><small>${e(D.name)}</small><small>${e(b.name)}</small></div>`}).join('')}</div>`;
+  document.body.appendChild(w)}catch(x){toast('تعذر إنشاء الباركود')}}
 async function login(){const p=prompt('كلمة مرور الإدارة');if(!p)return;const r=await fetch('/api/login',{method:'POST',headers:{'x-admin-token':p}});if(r.ok){TK=p;sessionStorage.setItem('tk',p);can=true;art=true;sp=0;render()}else toast('كلمة المرور غير صحيحة')}
 async function save(){toast('جارٍ الحفظ…');try{const r=await fetch('/api/menu',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TK},body:JSON.stringify(D)});toast(r.ok?'تم الحفظ والنشر ✅':'تعذر الحفظ ('+r.status+')')}catch(x){toast('تعذر الحفظ')}}
 const h0=location.hash.slice(1);
 (async()=>{try{D=await(await fetch('/api/menu')).json()}catch(x){}
- const hi=D.branches.findIndex(b=>b.id==h0);if(hi>=0){bi=hi;sp=0}
+ const hi=D.branches.findIndex(b=>b.id==(TBL?TBL.b:h0));if(hi>=0){bi=hi;sp=0}else if(TBL){location.replace('/');return}
  TK=sessionStorage.getItem('tk')||'';if(TK){try{const r=await fetch('/api/login',{method:'POST',headers:{'x-admin-token':TK}});if(r.ok){can=true;art=true}}catch(x){}}
  render();if(window.__ADM&&!can)login()})();
 </script></body></html>
