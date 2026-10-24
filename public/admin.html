@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#f8fafc;--cd:#fff;--nv:#052b52;--nv2:#0b4a5c;--gr:#1fa06f;--gr2:#e6f4ee;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--rd:#e11d48;box-sizing:border-box}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.6 Tajawal,system-ui,Tahoma,sans-serif;padding-bottom:env(safe-area-inset-bottom,0)}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:12px 16px calc(12px);padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.top h2{margin:0;font-size:20px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.burger{border:0;background:none;font-size:28px;line-height:1;padding:4px 8px;cursor:pointer}
+.top select{width:auto;max-width:150px;margin:0;padding:6px 10px;font-size:14px}
+.dr{position:fixed;top:0;bottom:0;right:0;width:290px;background:var(--nv);color:#fff;z-index:40;transform:translateX(100%);transition:transform .22s;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0)}
+.dr.on{transform:none}.bk{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:none}.bk.on{display:block}
+.brand{display:flex;align-items:center;gap:10px;padding:20px 20px 14px;font-size:20px;font-weight:800;border-bottom:1px solid #ffffff1f}
+.brand i{width:34px;height:34px;border-radius:10px;background:var(--gr);display:grid;place-items:center;font-style:normal}
+.slug{padding:12px 20px;color:#94a3b8;font-size:14px;border-bottom:1px solid #ffffff1f;direction:ltr;text-align:right}
+.nv{flex:1;overflow:auto;padding:8px 0}
+.nv button{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:#e2e8f0;padding:13px 22px;font-size:17px;cursor:pointer;text-align:right;border-right:4px solid transparent}
+.nv button.on{background:var(--nv2);border-right-color:var(--gr);color:#fff;font-weight:700}
+.nv span{width:26px;text-align:center}
+.lo{padding:14px 20px 20px;border-top:1px solid #ffffff1f;color:#94a3b8;font-size:14px}
+.lo button{margin-top:10px;width:100%;border:1.5px solid var(--gr);background:none;color:var(--gr);border-radius:12px;padding:10px;cursor:pointer;font-size:16px}
+main{max-width:760px;margin:auto;padding:20px 16px 80px}
+@media(min-width:900px){.dr{transform:none}.bk{display:none!important}.burger{display:none}.top,main{margin-right:290px}main{max-width:900px;margin-right:calc(290px + (100% - 290px - 900px)/2)}}
+h1{font-size:30px;margin:8px 0 4px;font-weight:800}.sub{color:var(--mu);margin:0 0 20px}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:20px;margin:16px 0;box-shadow:0 1px 3px #0f172a0d;overflow:hidden}
+.ch{padding:16px 20px;border-bottom:1px solid var(--bd);font-weight:700;font-size:18px}.cb{padding:16px 20px}
+label{display:block;font-weight:500;margin:14px 0 6px}
+input,select,textarea{width:100%;background:#fff;border:1.5px solid var(--bd);border-radius:14px;padding:12px 14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--gr);box-shadow:0 0 0 4px var(--gr2)}
+.hint{color:var(--mu);font-size:14px;margin-top:4px}
+.btn{border:0;background:var(--gr);color:#fff;border-radius:14px;padding:11px 20px;font-weight:700;cursor:pointer}
+.btn.o{background:#fff;color:var(--gr);border:1.5px solid var(--gr)}.btn.g{background:#e5e7eb;color:var(--tx)}.btn.r{background:#fff1f2;color:var(--rd);border:1.5px solid #fecdd3}
+.btn.s{padding:7px 14px;font-size:14px}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.gr{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.st{padding:18px 20px;display:flex;gap:14px;align-items:center;cursor:pointer;margin:0}
+.st b{display:block;font-size:30px;line-height:1.1}.st em{font-style:normal;font-size:30px;background:var(--gr2);border-radius:14px;width:54px;height:54px;display:grid;place-items:center}
+.st small{color:var(--mu)}
+.ro{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--bd)}.ro:first-child{border-top:0}
+.ro>div{flex:1;min-width:0}.ro b{display:block}.ro small{color:var(--mu)}
+.th{width:54px;height:54px;border-radius:12px;background:#eef2f6 center/cover;display:grid;place-items:center;font-size:24px;flex:none}
+.pl{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pl button{border:1.5px solid var(--bd);background:#fff;border-radius:22px;padding:7px 18px;cursor:pointer}.pl .on{background:var(--gr);border-color:var(--gr);color:#fff}
+.sw{position:relative;width:46px;height:26px;flex:none;appearance:none;-webkit-appearance:none;background:#e5e7eb;border-radius:14px;cursor:pointer;padding:0;border:0;transition:.2s}
+.sw:after{content:"";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:.2s}
+.sw:checked{background:var(--gr)}.sw:checked:after{right:23px}
+.em{text-align:center;padding:44px 20px}.em i{font-style:normal;font-size:56px;display:block;margin-bottom:10px}.em p{color:var(--mu);margin:6px 0}
+.tbc{padding:16px;text-align:center}.tbc .q{display:flex;justify-content:center;margin:10px 0;min-height:200px}.tbc .q img,.tbc .q canvas{max-width:100%}
+.lnk{direction:ltr;word-break:break-all;color:var(--mu);font-size:13px}
+.m{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.55);display:grid;place-items:center;padding:16px;overflow:auto}
+.m>div{background:#fff;border-radius:22px;width:100%;max-width:480px;padding:22px;max-height:94vh;overflow:auto}
+.m h3{margin:0 0 6px;font-size:22px}.acts{display:flex;gap:10px;margin-top:18px}
+#t{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--nv);color:#fff;padding:9px 20px;border-radius:22px;z-index:99;display:none}
+.lg{min-height:100vh;display:grid;place-items:center;padding:20px}.lg .cd{max-width:420px;width:100%;padding:32px 28px;text-align:center}
+.pw{position:relative}.pw button{position:absolute;left:12px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:20px;cursor:pointer}
+.pw input{padding-left:46px}
+.ph{width:100%;height:150px;border-radius:14px;background:#eef2f6 center/cover;display:grid;place-items:center;font-size:44px;margin-bottom:8px}
+</style></head><body>
+<div id="app"></div><div id="m"></div><div id="t"></div>
+<script>
+let D=null,TK=sessionStorage.getItem('tk')||'',bi=0,pg=location.hash.slice(1)||'home',q='',fc='',fs='all',tmr,MI=null,dro=0;
+const $=s=>document.querySelector(s);
+const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>Number(n||0).toLocaleString('en-US')+' د.ع';
+const uid=()=>Math.random().toString(36).slice(2,8);
+const B=()=>D.branches[bi];
+const NAV=[['home','🏠','الرئيسية'],['rest','🏪','المطعم'],['cats','📂','الفئات'],['prods','🍽️','المنتجات'],['orders','🧾','الطلبات'],['tables','📋','الطاولات ورمز QR'],['branches','🏬','الفروع'],['offers','🎯','العروض'],['rates','⭐','التقييمات'],['acc','🔑','الحساب']];
+function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2200)}
+function sv(){clearTimeout(tmr);tmr=setTimeout(async()=>{try{const r=await fetch('/api/menu',{method:'POST',headers:{'content-type':'application/json','x-admin-token':TK},body:JSON.stringify(D)});toast(r.ok?'تم الحفظ ✓':'تعذر الحفظ ('+r.status+')')}catch(x){toast('تعذر الحفظ')}},600)}
+function set(k,v){B()[k]=v;sv()}
+function go(p){pg=p;location.hash=p;dro=0;draw();scrollTo(0,0)}
+function fld(l,k,o={}){const b=B();return `<label>${l}</label><input ${o.ltr?'dir="ltr"':''} placeholder="${e(o.ph||'')}" value="${e(b[k])}" onchange="set('${k}',this.value.trim())">${o.h?`<div class="hint">${o.h}</div>`:''}`}
+function imgPick(f,max,cb){if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,max/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.75))};m.src=r.result};r.readAsDataURL(f)}
+function emp(i,t,p){return `<div class="cd em"><i>${i}</i><b>${t}</b><p>${p}</p></div>`}
+/* ---------- الصفحات ---------- */
+const P={
+home(){const b=B(),of=b.items.filter(i=>i.o>i.p).length,st=[['🍽️','المنتجات',b.items.length,'prods'],['📂','الفئات',b.cats.length,'cats'],['🎯','العروض',of,'offers'],['📋','الطاولات',(b.tables||[]).length,'tables']];
+ return `<h1>مرحبا بك${D.name?' في '+e(D.name):''}</h1><p class="sub">ملخص الفرع: ${e(b.name)}</p><div class="gr">${st.map(s=>`<div class="cd st" onclick="go('${s[3]}')"><em>${s[0]}</em><div><b>${s[2]}</b><small>${s[1]}</small></div></div>`).join('')}</div>
+ <div class="gr" style="margin-top:8px">${[['rest','🏪','المطعم','تحديث الاسم والشعار والتواصل'],['prods','🍽️','المنتجات','إضافة وتعديل المنتجات والأسعار'],['tables','📋','الطاولات ورمز QR','رمز QR لكل طاولة']].map(c=>`<div class="cd cb" style="cursor:pointer" onclick="go('${c[0]}')"><div style="font-size:34px">${c[1]}</div><b>${c[2]}</b><div class="hint">${c[3]}</div></div>`).join('')}</div>`},
+rest(){const b=B();return `<h1>المطعم</h1><p class="sub">إدارة ملف المطعم والهوية البصرية</p>
+ <div class="cd"><div class="ch">المعلومات الأساسية</div><div class="cb"><label>اسم المطعم</label><input value="${e(D.name)}" onchange="D.name=this.value.trim();sv()">
+ <label>الشعار</label>${D.logo?`<img src="${D.logo}" style="width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin-bottom:8px">`:''}<input type="file" accept="image/*" onchange="imgPick(this.files[0],300,d=>{D.logo=d;sv();draw()})"><div class="hint">يُفضّل صورة مربعة 400×400 أو أكبر</div></div></div>
+ <div class="cd"><div class="ch">صفحة الدخول</div><div class="cb"><label>صورة الخلفية</label>${D.bg?`<div class="ph" style="background-image:url(${D.bg})"></div>`:''}<input type="file" accept="image/*" onchange="imgPick(this.files[0],900,d=>{D.bg=d;sv();draw()})">
+ <label>فيديو الخلفية (قصير، أقل من 10 ميغا)</label><input type="file" accept="video/*" onchange="upVid(this.files[0])">
+ ${D.bg||D.vid?`<button class="btn r s" style="margin-top:12px" onclick="D.bg='';D.vid='';sv();draw()">إزالة الصورة والفيديو</button>`:''}</div></div>
+ <div class="cd"><div class="ch">بيانات الفرع: ${e(b.name)}</div><div class="cb">${fld('رقم الواتساب (لاستقبال الطلبات)','wa',{ltr:1,ph:'07xxxxxxxxx',h:'يجب أن يبدأ بـ 0 ويكون 11 رقماً'})}${fld('العنوان','ad')}${fld('ساعات العمل','hr',{ph:'11:00 ص – 11:30 م'})}</div></div>
+ <div class="cd"><div class="ch">الموقع وروابط التواصل</div><div class="cb">${fld('📍 موقع كوكل مابس','map',{ltr:1,ph:'https://maps.google.com/…',h:'سيظهر زر «الموقع» في المنيو'})}${fld('إنستغرام','ig',{ltr:1,ph:'https://instagram.com/…'})}${fld('فيسبوك','fb',{ltr:1,ph:'https://facebook.com/…'})}${fld('تيك توك','tt',{ltr:1,ph:'https://tiktok.com/@…'})}</div></div>`},
+cats(){const b=B();return `<h1>الفئات</h1><p class="sub">أقسام المنيو للفرع الحالي</p>
+ <div class="cd cb"><div style="display:flex;gap:10px"><input id="nc" placeholder="اسم فئة جديدة"><button class="btn" style="flex:none" onclick="addC()">+ إضافة</button></div></div>
+ <div class="cd">${b.cats.map(c=>{const n=b.items.filter(i=>i.c==c).length;return `<div class="ro"><div><b>${e(c)}</b><small>${n} منتج</small></div><button class="btn r s" data-c="${e(c)}" onclick="delC(this.dataset.c)">حذف</button></div>`}).join('')||'<div class="em"><p>لا توجد فئات</p></div>'}</div>`},
+prods(){const b=B(),l=b.items.filter(i=>(!q||i.n.includes(q))&&(!fc||i.c==fc)&&(fs=='all'||(fs=='on')==(i.a!==false)));
+ return `<div class="hd"><div><h1>المنتجات</h1><p class="sub">${b.items.length} منتج</p></div><button class="btn" onclick="itemM()">+ إضافة منتج</button></div>
+ <div class="cd cb"><input placeholder="🔍 ابحث عن منتج…" value="${e(q)}" oninput="q=this.value;lst()"><select style="margin-top:10px" onchange="fc=this.value;draw()"><option value="">كل الفئات</option>${b.cats.map(c=>`<option ${c==fc?'selected':''} value="${e(c)}">${e(c)}</option>`).join('')}</select>
+ <div class="pl">${[['all','الكل'],['on','متاح'],['off','غير متاح']].map(x=>`<button class="${fs==x[0]?'on':''}" onclick="fs='${x[0]}';draw()">${x[1]}</button>`).join('')}</div></div><div class="cd" id="pl">${rows(l)}</div>`},
+orders(){const b=B();return `<h1>الطلبات</h1><p class="sub">طلبات الزبائن المرسلة من قائمتك العامة</p>${emp('🧾','لا توجد طلبات هنا','الطلبات تصلك حالياً عبر واتساب مباشرة'+(b.wa?' على الرقم <span dir="ltr">'+e(b.wa)+'</span>':'. أضف رقم الواتساب من صفحة «المطعم»')+'.')}<button class="btn o" onclick="go('rest')">إعدادات الواتساب</button>`},
+tables(){const b=B(),t=b.tables||[];return `<div class="hd"><div><h1>الطاولات ورمز QR</h1><p class="sub">أنشئ رمز QR لكل طاولة ليمسحه العميل ويفتح المنيو ورقم طاولته جاهز</p></div><button class="btn" onclick="tblM()">+ إضافة طاولة</button></div>
+ ${t.length?`<div class="gr">${t.map(x=>`<div class="cd tbc"><b style="font-size:22px">${e(x.name)}</b><div class="q" id="qr-${x.id}"></div><div class="hint">امسح لعرض القائمة</div><div class="lnk">${e(tl(x))}</div>
+ <div class="acts" style="flex-wrap:wrap"><button class="btn o s" style="flex:1" data-i="${x.id}" onclick="cp(this.dataset.i)">نسخ الرابط</button><button class="btn g s" style="flex:1" data-i="${x.id}" onclick="dl(this.dataset.i)">تحميل QR</button><button class="btn r s" data-i="${x.id}" onclick="delT(this.dataset.i)">حذف</button></div></div>`).join('')}</div>`:emp('🪑','لا توجد طاولات بعد','أضف طاولات لإنشاء رموز QR لعملائك.')}`},
+branches(){return `<div class="hd"><div><h1>الفروع</h1><p class="sub">لكل فرع منتجاته ورقم واتسابه</p></div><button class="btn" onclick="addB()">+ فرع جديد</button></div>
+ ${D.branches.map((x,i)=>`<div class="cd cb"><label style="margin-top:0">اسم الفرع</label><input value="${e(x.name)}" onchange="D.branches[${i}].name=this.value.trim();sv()"><div class="hint">رابط الفرع المباشر:</div><div class="lnk">${e(location.origin+'/#'+x.id)}</div>
+ <div class="acts"><button class="btn o s" onclick="bi=${i};go('home')">${i==bi?'الفرع الحالي':'فتح الفرع'}</button><button class="btn r s" onclick="delB(${i})">حذف</button></div></div>`).join('')}`},
+offers(){const b=B(),l=b.items.filter(i=>i.o>i.p);return `<div class="hd"><div><h1>العروض والخصومات</h1><p class="sub">خصومات تظهر على المنيو، الزبون يشوف السعر الجديد والقديم مشطوب</p></div><button class="btn" onclick="offM()">+ إضافة خصم</button></div>
+ ${l.length?`<div class="cd">${l.map(i=>`<div class="ro"><div><b>${e(i.n)}</b><small>${e(i.c)}</small></div><div style="text-align:left"><b style="color:var(--gr)">${money(i.p)}</b><small><s>${money(i.o)}</s> · -${Math.round((1-i.p/i.o)*100)}%</small></div><button class="btn r s" data-i="${i.id}" onclick="rmOff(this.dataset.i)">إزالة</button></div>`).join('')}</div>`:emp('🎯','لا توجد عروض','أضف خصماً على أي منتج ليظهر في المنيو.')}`},
+rates(){return `<h1>التقييمات</h1><p class="sub">تقييمات الزبائن لطلباتك وأصنافك</p>${emp('⭐','لا توجد تقييمات بعد','تظهر هنا تقييمات الزبائن بعد تفعيل نظام التقييم.')}`},
+acc(){return `<h1>الحساب</h1><p class="sub">إعدادات الدخول</p><div class="cd"><div class="ch">كلمة المرور</div><div class="cb"><p style="margin:0">كلمة مرور الإدارة محفوظة في إعدادات الخادم (<b dir="ltr">ADMIN_PASSWORD</b>). لتغييرها: Render ← Environment ← عدّل القيمة ثم أعد التشغيل.</p></div></div><button class="btn r" onclick="out()">تسجيل الخروج</button>`}
+};
+function rows(l){return l.map(i=>`<div class="ro"><div class="th" style="${i.img?`background-image:url(${i.img})`:''}">${i.img?'':'🍽'}</div><div><b>${e(i.n)}</b><small>${e(i.c)} · ${money(i.p)}</small></div><input type="checkbox" class="sw" ${i.a!==false?'checked':''} data-i="${i.id}" onchange="tog(this.dataset.i,this.checked)"><button class="btn o s" data-i="${i.id}" onclick="itemM(this.dataset.i)">تعديل</button><button class="btn r s" data-i="${i.id}" onclick="delI(this.dataset.i)">حذف</button></div>`).join('')||'<div class="em"><p>لا توجد منتجات مطابقة</p></div>'}
+function lst(){const b=B(),l=b.items.filter(i=>(!q||i.n.includes(q))&&(!fc||i.c==fc)&&(fs=='all'||(fs=='on')==(i.a!==false)));$('#pl').innerHTML=rows(l)}
+/* ---------- إجراءات ---------- */
+function addC(){const v=$('#nc').value.trim(),b=B();if(v&&!b.cats.includes(v)){b.cats.push(v);sv();draw()}}
+function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات الفئة أولاً');return}if(!confirm('حذف الفئة «'+c+'»؟'))return;b.cats=b.cats.filter(x=>x!=c);sv();draw()}
+function tog(id,v){B().items.find(i=>i.id==id).a=v;sv()}
+function delI(id){if(!confirm('حذف المنتج؟'))return;const b=B();b.items=b.items.filter(i=>i.id!=id);sv();draw()}
+function itemM(id){const b=B();MI=id?{...b.items.find(i=>i.id==id)}:{id:'',img:'',a:true};
+ modal(`<h3>${id?'تعديل منتج':'إضافة منتج'}</h3><label>اسم المنتج</label><input id="mn" value="${e(MI.n)}"><label>الوصف</label><textarea id="md" rows="2">${e(MI.d)}</textarea>
+ <label>السعر</label><input id="mp" type="number" inputmode="numeric" value="${MI.p||''}"><label>السعر قبل الخصم (اختياري)</label><input id="mo" type="number" inputmode="numeric" value="${MI.o||''}">
+ <label>الفئة</label><select id="mc">${b.cats.map(c=>`<option ${MI.c==c||!MI.c&&c==fc?'selected':''}>${e(c)}</option>`).join('')}</select>
+ <label>الصورة</label><div id="pv">${MI.img?`<div class="ph" style="background-image:url(${MI.img})"></div>`:''}</div><input type="file" accept="image/*" onchange="imgPick(this.files[0],480,d=>{MI.img=d;$('#pv').innerHTML='<div class=ph style=background-image:url('+d+')></div>'})">
+ <div class="acts"><button class="btn" onclick="saveI()">${id?'تحديث':'إضافة المنتج'}</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
+function saveI(){const n=$('#mn').value.trim();if(!n){toast('اكتب اسم المنتج');return}const b=B();
+ const o={...MI,id:MI.id||'i'+uid(),n,d:$('#md').value.trim(),p:Number($('#mp').value)||0,o:Number($('#mo').value)||0,c:$('#mc').value},k=b.items.findIndex(i=>i.id==o.id);
+ if(k>=0)b.items[k]=o;else b.items.push(o);modal();sv();draw()}
+function tblM(){modal(`<h3>إضافة طاولة</h3><label>اسم الطاولة</label><input id="tn" placeholder="مثال: 1 ، VIP 2 ، خارجية 5"><div class="acts"><button class="btn" onclick="addT()">إضافة طاولة</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
+function addT(){const n=$('#tn').value.trim();if(!n)return;const b=B();(b.tables=b.tables||[]).push({id:'t'+uid(),name:n});modal();sv();draw()}
+function delT(id){if(!confirm('حذف الطاولة؟'))return;const b=B();b.tables=b.tables.filter(x=>x.id!=id);sv();draw()}
+const tl=x=>location.origin+'/?t='+encodeURIComponent(x.name)+'#'+B().id;
+function cp(id){const x=B().tables.find(t=>t.id==id);navigator.clipboard.writeText(tl(x)).then(()=>toast('تم نسخ الرابط'),()=>toast('تعذر النسخ'))}
+function dl(id){const x=B().tables.find(t=>t.id==id),c=document.querySelector('#qr-'+id+' canvas');if(!c)return;const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='table-'+x.name+'.png';a.click()}
+function qrs(){if(pg!='tables'||typeof QRCode=='undefined')return;(B().tables||[]).forEach(x=>new QRCode($('#qr-'+x.id),{text:tl(x),width:200,height:200,colorDark:'#0f172a',colorLight:'#ffffff'}))}
+function offM(){const l=B().items.filter(i=>!(i.o>i.p));modal(`<h3>إضافة خصم</h3><label>المنتج</label><select id="os">${l.map(i=>`<option value="${i.id}">${e(i.n)} — ${money(i.p)}</option>`).join('')}</select><label>السعر بعد الخصم</label><input id="on" type="number" inputmode="numeric"><div class="hint">السعر الحالي يصير «السعر القديم» المشطوب.</div><div class="acts"><button class="btn" onclick="addOff()">إضافة الخصم</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
+function addOff(){const i=B().items.find(x=>x.id==$('#os').value),n=Number($('#on').value);if(!i||!n||n>=i.p){toast('اكتب سعراً أقل من السعر الحالي');return}i.o=i.p;i.p=n;modal();sv();draw()}
+function rmOff(id){const i=B().items.find(x=>x.id==id);i.p=i.o;i.o=0;sv();draw()}
+function addB(){D.branches.push({id:'b'+uid(),name:'فرع جديد',wa:'',cats:['عام'],items:[],tables:[]});bi=D.branches.length-1;sv();draw()}
+function delB(i){if(D.branches.length<2){toast('يجب بقاء فرع واحد');return}if(!confirm('حذف الفرع وكل منتجاته؟'))return;D.branches.splice(i,1);bi=0;sv();draw()}
+async function upVid(f){if(!f)return;toast('جارٍ رفع الفيديو…');try{const r=await fetch('/api/upload?ext='+encodeURIComponent((f.name.split('.').pop()||'mp4').slice(0,5)),{method:'POST',headers:{'x-admin-token':TK},body:f}),j=await r.json();if(!r.ok)throw 0;D.vid=j.url;sv();draw()}catch(x){toast('فشل الرفع')}}
+function modal(h){$('#m').innerHTML=h?`<div class="m" onclick="if(event.target==this)modal()"><div>${h}</div></div>`:''}
+function out(){sessionStorage.removeItem('tk');TK='';location.hash='';draw()}
+/* ---------- الواجهة ---------- */
+function login(){return `<div class="lg"><div class="cd"><div style="font-size:40px">🔐</div><h1 style="font-size:26px">لوحة التحكم</h1><p class="sub">أدخل كلمة مرور الإدارة</p><div class="pw"><input id="pw" type="password" placeholder="كلمة المرور" onkeydown="if(event.key=='Enter')doLogin()"><button onclick="const p=$('#pw');p.type=p.type=='password'?'text':'password'">👁</button></div><button class="btn" style="width:100%;margin-top:16px;padding:13px" onclick="doLogin()">دخول</button><p><a href="/" style="color:var(--gr)">العودة للمنيو</a></p></div></div>`}
+async function doLogin(){const p=$('#pw').value;try{const r=await fetch('/api/login',{method:'POST',headers:{'x-admin-token':p}});if(r.ok){TK=p;sessionStorage.setItem('tk',p);draw()}else toast('كلمة المرور غير صحيحة')}catch(x){toast('تعذر الاتصال')}}
+function draw(){
+ if(!TK||!D){$('#app').innerHTML=login();return}
+ if(!P[pg])pg='home';
+ const cur=NAV.find(n=>n[0]==pg);
+ $('#app').innerHTML=`<div class="top"><button class="burger" onclick="dro=1;draw()">☰</button><h2>${e(D.name)}</h2>${D.branches.length>1?`<select onchange="bi=+this.value;fc='';draw()">${D.branches.map((b,i)=>`<option value="${i}" ${i==bi?'selected':''}>${e(b.name)}</option>`).join('')}</select>`:''}</div>
+ <div class="bk ${dro?'on':''}" onclick="dro=0;draw()"></div>
+ <aside class="dr ${dro?'on':''}"><div class="brand"><i>M</i>لوحة التحكم</div><div class="slug">${e(B().id)}</div><div class="nv">${NAV.map(n=>`<button class="${n[0]==pg?'on':''}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div><div class="lo">${e(D.name)}<button onclick="out()">تسجيل الخروج</button></div></aside>
+ <main>${P[pg]()}</main>`;
+ qrs();
+}
+(async()=>{try{D=await(await fetch('/api/menu')).json();D.branches.forEach(b=>{b.tables=b.tables||[];b.items=b.items||[]})}catch(x){}
+ if(TK){try{const r=await fetch('/api/login',{method:'POST',headers:{'x-admin-token':TK}});if(!r.ok)TK=''}catch(x){TK=''}}
+ draw()})();
+</script></body></html>
