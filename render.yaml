@@ -2,15 +2,9 @@ services:
   - type: web
     name: restaurant-menu
     runtime: node
-    plan: starter          # القرص الدائم يحتاج خطة مدفوعة
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: ADMIN_PASSWORD
         sync: false        # تكتبها أنت في لوحة Render
-      - key: DATA_DIR
-        value: /var/data
-    disk:
-      name: menu-data
-      mountPath: /var/data
-      sizeGB: 1
