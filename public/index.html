@@ -19,6 +19,7 @@ body{background:var(--bg);color:var(--tx);font:16px/1.5 Tajawal,system-ui,Tahoma
 .mu{display:block;color:var(--mu);margin:4px 0;text-decoration:none}
 .pill{display:inline-block;border:2px solid var(--bd);border-radius:22px;padding:5px 16px;margin:8px 0;background:var(--cd)}
 .rtb{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:22px;padding:7px 16px;font:700 14px Tajawal,sans-serif;margin:6px 0;cursor:pointer}.stars{display:flex;gap:6px;justify-content:center;margin:12px 0}.stars button{border:0;background:none;font-size:38px;line-height:1;color:#cbd5e1;cursor:pointer}.stars button.on{color:#f5b301}
+.lgb{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:18px;padding:5px 12px;font:700 13px Tajawal,sans-serif;cursor:pointer;flex:none}.lgb.sl{position:absolute;top:12px;left:12px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border-color:rgba(255,255,255,.4)}
 .noord{background:#fee2e2;color:#991b1b;border-radius:14px;padding:8px 14px;font-weight:700;margin:8px 0}.nt{display:block;white-space:pre-line}
 .soc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
 .soc a{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800;font-size:20px}
@@ -137,6 +138,17 @@ const B=()=>D.branches[bi];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2600)}
 function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
 function pickB(i){bi=i;cat='';cart={};render()}
+const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table'},
+ ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز'}};
+const LGN={ar:'عربي',en:'EN',ku:'کوردی'};
+const LGo=()=>{try{return localStorage.getItem('lg')||'ar'}catch(x){return 'ar'}};
+const T=s=>{const l=LGo();return (UI[l]&&UI[l][s])||s};
+const tn=i=>{const l=LGo(),t=i.tr&&i.tr[l];return (l!='ar'&&t&&t.n)||i.n};
+const td=i=>{const l=LGo(),t=i.tr&&i.tr[l];return (l!='ar'&&t&&t.d)||i.d};
+const tc=(b,c)=>{const l=LGo(),t=b&&b.ctr&&b.ctr[c];return (l!='ar'&&t&&t[l])||c};
+function hasTr(){return D.branches.some(b=>Object.values(b.ctr||{}).some(t=>t.en||t.ku)||(b.items||[]).some(i=>i.tr&&((i.tr.en&&i.tr.en.n)||(i.tr.ku&&i.tr.ku.n))))}
+function lgb(c){return hasTr()?`<button class="lgb ${c||''}" onclick="setLg()">🌐 ${LGN[LGo()]}</button>`:''}
+function setLg(){const o=['ar','en','ku'],n=o[(o.indexOf(LGo())+1)%3];try{localStorage.setItem('lg',n)}catch(x){}document.documentElement.dir=n=='en'?'ltr':'rtl';document.documentElement.lang=n;sp?splash():render()}
 function u(s){return /^https?:\/\//.test(s||'')?e(s):''}
 const GOVS=1;
 function phs(b){const l=(Array.isArray(b.ph)?b.ph:[]).filter(Boolean);return l.length?l:(b.wa?[b.wa]:[])}
@@ -145,16 +157,16 @@ function soc2(b){const s=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank"
 function socs(b){return soc2(b)}
 function splash(){
  const b=B();
- $('#app').innerHTML=`<div class="sp" style="${D.bg?`background-image:url(${e(D.bg)})`:''}">${D.vid?`<video class="bgv" src="${e(D.vid)}" autoplay muted loop playsinline></video>`:''}<div class="sov"></div>
+ $('#app').innerHTML=`<div class="sp" style="${D.bg?`background-image:url(${e(D.bg)})`:''}">${D.vid?`<video class="bgv" src="${e(D.vid)}" autoplay muted loop playsinline></video>`:''}<div class="sov"></div>${lgb('sl')}
  <div class="sc">
  <div>${D.logo?`<img class="lg" src="${e(D.logo)}" alt="">`:'<div class="lg">🍽</div>'}<h1>${e(D.name)}</h1></div>
- <div>${D.branches.length>1?`<div class="mu" style="color:#ddd">اختر الفرع</div><div class="bps">${D.branches.map((x,i)=>`<button class="bp ${i==bi?'on':''}" onclick="bi=${i};cart={};splash()">${e(x.name)}</button>`).join('')}</div>`:''}<button class="go" onclick="sp=0;render()">دخول المنيو</button></div>
+ <div>${D.branches.length>1?`<div class="mu" style="color:#ddd">${T('اختر الفرع')}</div><div class="bps">${D.branches.map((x,i)=>`<button class="bp ${i==bi?'on':''}" onclick="bi=${i};cart={};splash()">${e(x.name)}</button>`).join('')}</div>`:''}<button class="go" onclick="sp=0;render()">${T('دخول المنيو')}</button></div>
  ${socs(b)}</div></div>`;
 }
 function catsOf(b){return b.cats.filter(c=>b.items.some(i=>i.c==c))}
 function topOf(b){if(D.noTop)return[];return (TOP[b.id]||[]).map(id=>b.items.find(i=>i.id==id)).filter(Boolean).slice(0,8)}
 function drw(o){const d=$('#dw');if(!o){d.innerHTML='';return}const b=B(),cs=catsOf(b),cur=cs.includes(cat)?cat:cs[0],tp=topOf(b);
- d.innerHTML=`<div class="dwb" onclick="drw(0)"></div><aside class="dwp"><div class="dwh">${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="dl">🍽</div>'}<b>${e(D.name)}</b><button onclick="drw(0)" aria-label="إغلاق">✕</button></div><div class="dwl">الأقسام</div><nav class="dwn">${tp.length?`<button onclick="drw(0);goTop()"><span>🔥 الأكثر طلباً</span><small>${tp.length}</small></button>`:''}${cs.map(c=>`<button class="${c==cur?'on':''}" data-c="${e(c)}" onclick="pickC(this.dataset.c)"><span>${e(c)}</span><small>${b.items.filter(i=>i.c==c).length}</small></button>`).join('')}</nav></aside>`}
+ d.innerHTML=`<div class="dwb" onclick="drw(0)"></div><aside class="dwp"><div class="dwh">${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="dl">🍽</div>'}<b>${e(D.name)}</b><button onclick="drw(0)" aria-label="إغلاق">✕</button></div><div class="dwl">${T('الأقسام')}</div><nav class="dwn">${tp.length?`<button onclick="drw(0);goTop()"><span>🔥 ${T('الأكثر طلباً')}</span><small>${tp.length}</small></button>`:''}${cs.map(c=>`<button class="${c==cur?'on':''}" data-c="${e(c)}" onclick="pickC(this.dataset.c)"><span>${e(tc(b,c))}</span><small>${b.items.filter(i=>i.c==c).length}</small></button>`).join('')}</nav></aside>`}
 function pickC(c){drw(0);go(c)}
 document.addEventListener('keydown',ev=>{if(ev.key=='Escape')drw(0)});
 function go(c){cat=c;render();const s=document.getElementById('sec');if(s)s.scrollIntoView({behavior:'smooth'})}
@@ -168,19 +180,19 @@ function render(){
  const px=scr();
  const fvs=b.items.filter(i=>FAV.has(i.id)),cs=catsOf(b),cur=cs.includes(cat)?cat:cs[0],dis=b.items.some(i=>i.o>i.p),tp=topOf(b);
  const card=i=>{const q=cart[i.id]||0,off=i.o>i.p?Math.round((1-i.p/i.o)*100):0,fv=FAV.has(i.id);
-  return `<div class="cd"><div class="im2" style="${i.img?`background-image:url(${e(i.img)})`:''}">${i.img?'':'<div class="ph">🍽</div>'}</div>${off?`<span class="bd">-${off}%</span>`:''}<button class="hrt ${fv?'on':''}" onclick="fav('${i.id}')" aria-label="المفضلة">${HS(fv)}</button><div class="acs">${q?`<div class="qp"><button onclick="add('${i.id}',-1)">−</button><b>${q}</b><button onclick="add('${i.id}',1)">+</button></div>`:`<button class="pl" onclick="add('${i.id}',1)"><span class="pt">إضافة</span>+</button>`}</div><div class="ft"><b>${e(i.n)}</b>${i.d?`<small>${e(i.d)}</small>`:''}<div class="pp"><span>${money(i.p)}</span>${i.o>i.p?`<s>${money(i.o)}</s>`:''}</div></div></div>`};
+  return `<div class="cd"><div class="im2" style="${i.img?`background-image:url(${e(i.img)})`:''}">${i.img?'':'<div class="ph">🍽</div>'}</div>${off?`<span class="bd">-${off}%</span>`:''}<button class="hrt ${fv?'on':''}" onclick="fav('${i.id}')" aria-label="المفضلة">${HS(fv)}</button><div class="acs">${q?`<div class="qp"><button onclick="add('${i.id}',-1)">−</button><b>${q}</b><button onclick="add('${i.id}',1)">+</button></div>`:`<button class="pl" onclick="add('${i.id}',1)"><span class="pt">${T('إضافة')}</span>+</button>`}</div><div class="ft"><b>${e(tn(i))}</b>${td(i)?`<small>${e(td(i))}</small>`:''}<div class="pp"><span>${money(i.p)}</span>${i.o>i.p?`<s>${money(i.o)}</s>`:''}</div></div></div>`};
  const so=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank" rel="noopener" style="background:${bg}">${t}</a>`:'';
- $('#app').innerHTML=`<header class="tb"><button class="mbtn" onclick="drw(1)" aria-label="الأقسام"><i></i><i></i><i></i></button><div class="tn">${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="tl">🍽</div>'}<b>${e(D.name)}</b></div>${TBL?`<span class="tt">🪑 طاولة ${e(TBL.n)}</span>`:''}</header>
+ $('#app').innerHTML=`<header class="tb"><button class="mbtn" onclick="drw(1)" aria-label="الأقسام"><i></i><i></i><i></i></button><div class="tn">${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="tl">🍽</div>'}<b>${e(D.name)}</b></div>${lgb()}${TBL?`<span class="tt">🪑 طاولة ${e(TBL.n)}</span>`:''}</header>
  <div class="hd">${D.logo?`<img class="lg" src="${e(D.logo)}" alt="">`:'<div class="lg">🍽</div>'}<h1>${e(D.name)}</h1><i class="ln"></i>${sel()}
  ${ctc(b)}
- ${b.rt?`<button class="rtb" onclick="rateM()">⭐ ${RS[b.id]?RS[b.id].a+' ('+RS[b.id].n+') · ':''}قيّم تجربتك</button>`:''}${soc2(b)}${b.noOrd?'<div class="noord">⛔ استقبال الطلبات متوقف مؤقتاً</div>':''}
- ${dis?'<span class="of">🎉 عروض وخصومات</span>':''}</div>
- ${tp.length?`<h2 class="sh" id="top"><i></i>🔥 الأكثر طلباً</h2><div class="hs">${tp.map(card).join('')}</div>`:''}
- ${fvs.length?`<h2 class="sh"><i></i>❤️ المفضلة</h2><div class="hs">${fvs.map(card).join('')}</div>`:''}
- <div class="cs">${cs.map(c=>`<button class="ct ${c==cur?'on':''} ${ci(b,c)?'':'ni'}" data-c="${e(c)}" style="${ci(b,c)?`background-image:linear-gradient(transparent 40%,rgba(0,0,0,.7)),url(${e(ci(b,c))})`:''}" onclick="go(this.dataset.c)">${e(c)}</button>`).join('')}</div>
- ${cur?(()=>{const l=b.items.filter(i=>i.c==cur);return `<h2 class="sh" id="sec"><i></i>${e(cur)} <small>(${l.length})</small></h2><div class="gr">${l.map(card).join('')}</div>`})():''}
- <h2 class="sh"><i></i>فروعنا 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${ctc(x)}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
- ${cnt&&!b.noOrd?`<div class="bar"><button onclick="sheet()">عرض الطلب (${cnt}) — ${money(tot)}</button></div>`:''}`;
+ ${b.rt?`<button class="rtb" onclick="rateM()">⭐ ${RS[b.id]?RS[b.id].a+' ('+RS[b.id].n+') · ':''}${T('قيّم تجربتك')}</button>`:''}${soc2(b)}${b.noOrd?'<div class="noord">⛔ استقبال الطلبات متوقف مؤقتاً</div>':''}
+ ${dis?`<span class="of">🎉 ${T('عروض وخصومات')}</span>`:''}</div>
+ ${tp.length?`<h2 class="sh" id="top"><i></i>🔥 ${T('الأكثر طلباً')}</h2><div class="hs">${tp.map(card).join('')}</div>`:''}
+ ${fvs.length?`<h2 class="sh"><i></i>❤️ ${T('المفضلة')}</h2><div class="hs">${fvs.map(card).join('')}</div>`:''}
+ <div class="cs">${cs.map(c=>`<button class="ct ${c==cur?'on':''} ${ci(b,c)?'':'ni'}" data-c="${e(c)}" style="${ci(b,c)?`background-image:linear-gradient(transparent 40%,rgba(0,0,0,.7)),url(${e(ci(b,c))})`:''}" onclick="go(this.dataset.c)">${e(tc(b,c))}</button>`).join('')}</div>
+ ${cur?(()=>{const l=b.items.filter(i=>i.c==cur);return `<h2 class="sh" id="sec"><i></i>${e(tc(b,cur))} <small>(${l.length})</small></h2><div class="gr">${l.map(card).join('')}</div>`})():''}
+ <h2 class="sh"><i></i>${T('فروعنا')} 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${ctc(x)}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
+ ${cnt&&!b.noOrd?`<div class="bar"><button onclick="sheet()">${T('عرض الطلب')} (${cnt}) — ${money(tot)}</button></div>`:''}`;
  ['.cs','.hs'].forEach((s,k)=>{const q=document.querySelector(s);if(q)q.scrollLeft=px[k]});
 }
 function ci(b,c){if(b.cimg&&b.cimg[c])return b.cimg[c];const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
@@ -192,15 +204,16 @@ function sheet(){
  if(!ls.length){$('#ov').innerHTML='';return}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0),v=id=>($('#'+id)||{}).value||'';
  const keep={nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),nt:v('nt')};
- $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>طلبك — ${e(b.name)}</h1>${ls.map(i=>`<div class="row box"><span>${cart[i.id]}× ${e(i.n)}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div>`).join('')}
- <h3>المجموع: ${money(tot)}</h3>
+ $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>${T('طلبك')} — ${e(b.name)}</h1>${ls.map(i=>`<div class="row box"><span>${cart[i.id]}× ${e(tn(i))}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div>`).join('')}
+ <h3>${T('المجموع')}: ${money(tot)}</h3>
  ${TBL?`<div class="box tbx"><span>🪑 رقم الطاولة</span><small>(ثابت)</small><b>${e(TBL.n)}</b></div>`:''}
- <label class="fl" for="nm">الاسم</label><input id="nm" autocomplete="name" placeholder="اكتب اسمك" value="${e(keep.nm)}">
- <label class="fl" for="ph">رقم الهاتف</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xxxxxxxxx" value="${e(keep.ph)}">
- <label class="fl" for="nt">ملاحظات</label><textarea id="nt" rows="2" placeholder="مثال: بدون بصل">${e(keep.nt)}</textarea>
+ <label class="fl" for="nm">${T('الاسم')}</label><input id="nm" autocomplete="name" placeholder="اكتب اسمك" value="${e(keep.nm)}">
+ <label class="fl" for="ph">${T('رقم الهاتف')}</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xxxxxxxxx" value="${e(keep.ph)}">
+ <label class="fl" for="nt">${T('ملاحظات')}</label><textarea id="nt" rows="2" placeholder="مثال: بدون بصل">${e(keep.nt)}</textarea>
  <button class="b p" style="width:100%;padding:13px;margin-top:12px" onclick="send()">${b.waOff?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}</button>
- <button class="b" style="width:100%;margin-top:8px" onclick="$('#ov').innerHTML=''">رجوع</button></div></div>`;
+ <button class="b" style="width:100%;margin-top:8px" onclick="$('#ov').innerHTML=''">${T('رجوع')}</button></div></div>`;
 }
+document.documentElement.dir=LGo()=='en'?'ltr':'rtl';
 let RV=0;
 function rateM(){RV=0;$('#ov').innerHTML=`<div class="ov"><div class="w"><h1>قيّم تجربتك — ${e(B().name)}</h1><div class="stars">${[1,2,3,4,5].map(n=>`<button data-n="${n}" onclick="rstar(${n})" aria-label="${n}">★</button>`).join('')}</div>
  <label class="fl" for="rn">الاسم (اختياري)</label><input id="rn" placeholder="اسمك"><label class="fl" for="rc">ملاحظتك (اختياري)</label><textarea id="rc" rows="3"></textarea>

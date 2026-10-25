@@ -188,6 +188,7 @@ function catM(c){const b=B();MC={old:c||null,img:c?((b.cimg||{})[c]||''):''};
  <label>صورة الفئة (اختياري)</label><div id="cpv">${MC.img?`<div class="ph" style="background-image:url(${MC.img});height:120px"></div>`:''}</div>
  <label class="dz" style="display:block;border:2px dashed var(--bd);border-radius:16px;padding:22px;text-align:center;cursor:pointer;color:var(--mu)">⬆️ اضغط لاختيار صورة<br><small>JPG, PNG, WebP</small><input type="file" accept="image/*" style="display:none" onchange="imgPick(this.files[0],480,d=>{MC.img=d;$('#cpv').innerHTML='<div class=ph style=\'background-image:url('+d+');height:120px\'></div>'})"></label>
  ${MC.img?`<button class="btn r s" style="margin-top:8px" onclick="MC.img='';$('#cpv').innerHTML=''">إزالة الصورة</button>`:''}
+ <details style="margin:12px 0;border:1px solid var(--bd);border-radius:14px;padding:10px 14px"><summary style="cursor:pointer;font-weight:700">🌐 الترجمات</summary><label>English</label><input id="ct_en" dir="ltr" value="${e(((b.ctr||{})[c]||{}).en||'')}"><label>کوردی</label><input id="ct_ku" value="${e(((b.ctr||{})[c]||{}).ku||'')}"></details>
  <label>ترتيب العرض</label><input id="co" type="number" inputmode="numeric" min="1" max="${b.cats.length+(c?0:1)}" value="${c?b.cats.indexOf(c)+1:b.cats.length+1}"><div class="hint">1 = أول فئة. الأرقام الأصغر تظهر أولاً.</div>
  <div class="acts"><button class="btn" onclick="saveC()">حفظ</button><button class="btn g" onclick="modal()">إلغاء</button></div>`);setTimeout(()=>{const i=$('#cn');i&&i.focus()},50)}
 function saveC(){const b=B(),n=$('#cn').value.trim(),old=MC.old;if(!n){toast('اكتب اسم الفئة');$('#cn').focus();return}
@@ -195,22 +196,27 @@ function saveC(){const b=B(),n=$('#cn').value.trim(),old=MC.old;if(!n){toast('ا
  let pos=Math.max(1,Math.min(b.cats.length+(old?0:1),parseInt($('#co').value)||b.cats.length+1))-1;
  b.cimg=b.cimg||{};
  if(old){const k=b.cats.indexOf(old);b.cats.splice(k,1);b.items.forEach(i=>{if(i.c==old)i.c=n});delete b.cimg[old]}
+ b.ctr=b.ctr||{};const ot=old&&b.ctr[old];if(old)delete b.ctr[old];{const t={en:$('#ct_en').value.trim(),ku:$('#ct_ku').value.trim()};if(t.en||t.ku)b.ctr[n]=t}
  b.cats.splice(pos,0,n);if(MC.img)b.cimg[n]=MC.img;else delete b.cimg[n];
  if(fc==old&&old)fc=n;modal();sv();draw();toast('تم الحفظ ✓')}
 function mvC(c,d){const b=B(),k=b.cats.indexOf(c);if(k<0)return;let t=d=='top'?0:d=='end'?b.cats.length-1:Math.max(0,Math.min(b.cats.length-1,k+d));if(t==k)return;b.cats.splice(k,1);b.cats.splice(t,0,c);sv();draw()}
 async function chPw(){const o=$('#po').value,n=$('#pn').value,c=$('#pc').value;if(!o||!n){toast('املأ الحقول');return}if(n!=c){toast('التأكيد لا يطابق الكلمة الجديدة');return}if(n.length<6){toast('6 أحرف على الأقل');return}
  const r=await fetch('/api/me/password',{method:'POST',headers:hdr(),body:JSON.stringify({old:o,new:n})});const j=await r.json().catch(()=>({}));if(r.ok){['po','pn','pc'].forEach(i=>$('#'+i).value='');toast('تم تغيير كلمة المرور ✓')}else toast(j.error||'تعذر التغيير')}
-function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات الفئة أولاً');return}if(!confirm('حذف الفئة «'+c+'»؟'))return;b.cats=b.cats.filter(x=>x!=c);if(b.cimg)delete b.cimg[c];sv();draw()}
+function delC(c){const b=B();if(b.items.some(i=>i.c==c)){toast('انقل أو احذف منتجات الفئة أولاً');return}if(!confirm('حذف الفئة «'+c+'»؟'))return;b.cats=b.cats.filter(x=>x!=c);if(b.cimg)delete b.cimg[c];if(b.ctr)delete b.ctr[c];sv();draw()}
 function tog(id,v){B().items.find(i=>i.id==id).a=v;sv();lst()}
 function delI(id){if(!confirm('حذف المنتج؟'))return;const b=B();b.items=b.items.filter(i=>i.id!=id);sv();draw()}
 function itemM(id){const b=B();MI=id?{...b.items.find(i=>i.id==id)}:{id:'',img:'',a:true};
  modal(`<h3>${id?'تعديل منتج':'إضافة منتج'}</h3><label>اسم المنتج</label><input id="mn" value="${e(MI.n)}"><label>الوصف</label><textarea id="md" rows="2">${e(MI.d)}</textarea>
+ <details style="margin:12px 0;border:1px solid var(--bd);border-radius:14px;padding:10px 14px"><summary style="cursor:pointer;font-weight:700">🌐 الترجمات</summary>
+ <label>English — Name</label><input id="tn_en" dir="ltr" value="${e(((MI.tr||{}).en||{}).n||'')}"><label>English — Description</label><input id="td_en" dir="ltr" value="${e(((MI.tr||{}).en||{}).d||'')}">
+ <label>کوردی — ناو</label><input id="tn_ku" value="${e(((MI.tr||{}).ku||{}).n||'')}"><label>کوردی — وەسف</label><input id="td_ku" value="${e(((MI.tr||{}).ku||{}).d||'')}"></details>
  <label>السعر</label><input id="mp" type="number" inputmode="numeric" value="${MI.p||''}"><label>السعر قبل الخصم (اختياري)</label><input id="mo" type="number" inputmode="numeric" value="${MI.o||''}">
  <label>الفئة</label><select id="mc">${b.cats.map(c=>`<option ${MI.c==c||!MI.c&&c==fc?'selected':''}>${e(c)}</option>`).join('')}</select>
  <label>الصورة</label><div id="pv">${MI.img?`<div class="ph" style="background-image:url(${MI.img})"></div>`:''}</div><input type="file" accept="image/*" onchange="imgPick(this.files[0],480,d=>{MI.img=d;$('#pv').innerHTML='<div class=ph style=background-image:url('+d+')></div>'})">
  <div class="acts"><button class="btn" onclick="saveI()">${id?'تحديث':'إضافة المنتج'}</button><button class="btn g" onclick="modal()">إلغاء</button></div>`)}
+function trOf(){const r={};['en','ku'].forEach(l=>{const n=($('#tn_'+l)||{value:''}).value.trim(),d=($('#td_'+l)||{value:''}).value.trim();if(n||d)r[l]={n,d}});return Object.keys(r).length?r:undefined}
 function saveI(){const n=$('#mn').value.trim();if(!n){toast('اكتب اسم المنتج');return}const b=B();
- const o={...MI,id:MI.id||'i'+uid(),n,d:$('#md').value.trim(),p:Number($('#mp').value)||0,o:Number($('#mo').value)||0,c:$('#mc').value},k=b.items.findIndex(i=>i.id==o.id);
+ const o={...MI,id:MI.id||'i'+uid(),n,d:$('#md').value.trim(),p:Number($('#mp').value)||0,o:Number($('#mo').value)||0,c:$('#mc').value,tr:trOf()},k=b.items.findIndex(i=>i.id==o.id);
  if(k>=0)b.items[k]=o;else b.items.push(o);modal();sv();draw()}
 function tblM(){modal(`<h3>إضافة طاولة</h3><label>اسم أو رقم الطاولة</label><input id="tn" placeholder="مثال: 1 ، VIP 2 ، خارجية 5">
  <div class="hint">أو أضف مجموعة أرقام دفعة واحدة:</div><div style="display:flex;gap:10px"><input id="tf" type="number" inputmode="numeric" placeholder="من" min="1"><input id="tt" type="number" inputmode="numeric" placeholder="إلى" min="1"></div>

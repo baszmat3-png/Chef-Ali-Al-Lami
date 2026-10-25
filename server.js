@@ -77,7 +77,7 @@ function need(o, n) {
         const A = a.cats || [], B = b.cats || [];
         if (B.some(c => !A.includes(c))) r.add('add');
         if (A.some(c => !B.includes(c))) r.add('delete');
-      } else if (k === 'cimg') r.add('edit');
+      } else if (k === 'cimg' || k === 'ctr') r.add('edit');
       else if (k === 'offers') r.add('offers');
       else if (k === 'tables') r.add('tables');
       else r.add('info');
