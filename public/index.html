@@ -142,8 +142,8 @@ const B=()=>D.branches[bi];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2600)}
 function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
 function pickB(i){bi=i;cat='';cart={};render()}
-const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','كل الأصناف':'All items'},
- ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','كل الأصناف':'هەموو خواردنەکان'}};
+const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','العنوان':'Address','كل الأصناف':'All items'},
+ ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','العنوان':'ناونیشان','كل الأصناف':'هەموو خواردنەکان'}};
 const LGN={ar:'عربي',en:'EN',ku:'کوردی'};
 const LGo=()=>{try{return localStorage.getItem('lg')||'ar'}catch(x){return 'ar'}};
 const T=s=>{const l=LGo();return (UI[l]&&UI[l][s])||s};
@@ -215,12 +215,13 @@ function sheet(){
  const b=B(),ls=b.items.filter(i=>cart[i.id]);
  if(!ls.length){$('#ov').innerHTML='';return}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0),v=id=>($('#'+id)||{}).value||'';
- const keep={nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),nt:v('nt')};
+ const keep={nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),ad:v('ad')||LS.get('c_ad'),nt:v('nt')};
  $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>${T('طلبك')} — ${e(b.name)}</h1>${ls.map(i=>`<div class="row box"><span>${cart[i.id]}× ${e(tn(i))}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div>`).join('')}
  <h3>${T('المجموع')}: ${money(tot)}</h3>
  ${TBL?`<div class="box tbx"><span>🪑 رقم الطاولة</span><small>(ثابت)</small><b>${e(TBL.n)}</b></div>`:''}
  <label class="fl" for="nm">${T('الاسم')}</label><input id="nm" autocomplete="name" placeholder="اكتب اسمك" value="${e(keep.nm)}">
  <label class="fl" for="ph">${T('رقم الهاتف')}</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xxxxxxxxx" value="${e(keep.ph)}">
+ ${TBL?'':`<label class="fl" for="ad">${T('العنوان')}</label><input id="ad" autocomplete="street-address" placeholder="المنطقة / الشارع / أقرب نقطة دالة" value="${e(keep.ad)}">`}
  <label class="fl" for="nt">${T('ملاحظات')}</label><textarea id="nt" rows="2" placeholder="مثال: بدون بصل">${e(keep.nt)}</textarea>
  <button class="b p" style="width:100%;padding:13px;margin-top:12px" onclick="send()">${b.waOff?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}</button>
  <button class="b" style="width:100%;margin-top:8px" onclick="$('#ov').innerHTML=''">${T('رجوع')}</button></div></div>`;
@@ -241,18 +242,19 @@ async function sendRate(){if(!RV){toast('اختر عدد النجوم');return}c
 let SND=0;
 async function send(){
  if(SND)return;
- const b=B(),ls=b.items.filter(i=>cart[i.id]),v=id=>$('#'+id).value.trim(),noWa=!!b.waOff;
+ const b=B(),ls=b.items.filter(i=>cart[i.id]),v=id=>($('#'+id)||{value:''}).value.trim(),noWa=!!b.waOff;
  let w=String(b.wa||'').replace(/\D/g,'');if(!noWa&&!w){toast('رقم واتساب الفرع غير مضاف');return}
  if(w[0]=='0')w='964'+w.slice(1);
  if(!v('nm')){toast('اكتب الاسم');$('#nm').focus();return}
  if(v('ph').replace(/\D/g,'').length<7){toast('اكتب رقم هاتف صحيح');$('#ph').focus();return}
+ if(!TBL&&!v('ad')){toast('اكتب العنوان');$('#ad').focus();return}
  SND=1;const btn=document.querySelector('.ov .b.p');if(btn){btn.disabled=true;btn.textContent='جارٍ الإرسال…'}
  // نفتح نافذة واتساب فوراً (ضمن ضغطة المستخدم) ثم نعبّئ الرابط بعد أخذ رقم الطلب من السيرفر
  let wn=null;if(!noWa){try{wn=window.open('','_blank')}catch(x){}}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0);let no=null,fail=0;
- LS.set('c_nm',v('nm'));LS.set('c_ph',v('ph'));
+ LS.set('c_nm',v('nm'));LS.set('c_ph',v('ph'));LS.set('c_ad',v('ad'));
  for(let t=0;t<3&&!no;t++){try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),9000);
-  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id]})),name:v('nm'),phone:v('ph'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
+  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id]})),name:v('nm'),phone:v('ph'),addr:v('ad'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
   if(r.ok){no=(await r.json()).no}else{fail=1;if(r.status<500&&r.status!=429)break}}catch(x){fail=1}}
  if(!no){SND=0;try{wn&&wn.close()}catch(x){}toast('تعذر تسجيل الطلب وأخذ رقمه، تحقق من الاتصال وحاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent=noWa?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}return}
  if(noWa){SND=0;if(fail||!no){try{wn&&wn.close()}catch(x){}toast('تعذر إرسال الطلب، حاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent='إرسال الطلب'}return}
@@ -260,6 +262,7 @@ async function send(){
  const nf=n=>Number(n||0).toLocaleString('en-US');
  let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.wn||b.name.replace(/\s*سوق المدينة\s*/,' ').trim()}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
  if(TBL)m+=`\n🪑 الطاولة: ${TBL.n}`;
+ if(v('ad'))m+=`\n📌 ${v('ad')}`;
  if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
  m+=`\n\n\nالمجموع الكلي للطلب : ${nf(tot)} IQD`;
  const url='https://wa.me/'+w+'?text='+encodeURIComponent(m);SND=0;if(btn){btn.disabled=false;btn.textContent='إرسال الطلب عبر واتساب 💬'}

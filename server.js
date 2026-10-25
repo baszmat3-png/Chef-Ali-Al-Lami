@@ -270,7 +270,7 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
     if (tb && seq(tsig(br.id, tb.id), String(b.tk.s || ''))) table = { id: tb.id, name: tb.name };
   }
   const o = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), ts: new Date().toISOString(), b: br.id, bn: br.name, table,
-    name: clip(b.name, 60), phone: clip(b.phone, 25), notes: clip(b.notes, 300), items, total: items.reduce((s, i) => s + i.p * i.q, 0) };
+    name: clip(b.name, 60), phone: clip(b.phone, 25), addr: clip(b.addr, 200), notes: clip(b.notes, 300), items, total: items.reduce((s, i) => s + i.p * i.q, 0) };
   if (!o.name || o.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'bad contact' });
   await lock(async () => { o.no = CTR++; await S.setKV('ctr', { n: CTR }); await S.addOrder(o); });
   TOP = null;
