@@ -271,10 +271,17 @@ app.post('/api/backups/:id/restore', auth('owner'), ah((req, res) => lock(async 
   const b = await S.getBackup(req.params.id); if (!b || !b.menu) return res.status(404).json({ error: 'not found' });
   await snapshot('before-restore'); await restoreCore(b.menu, b.users); res.json({ ok: true });
 })));
-app.get('/api/backup', auth('owner'), ah(async (req, res) => {
-  const files = (await S.allFiles()).map(f => ({ name: f.name, mime: f.mime, data: Buffer.from(f.data).toString('base64') }));
-  const out = { format: 'chef-menu-backup', version: 1, created: new Date().toISOString(), menu: MENU.d, users: USERS, orders: await S.listOrders(null, 5000), secret: SECRET_T, files };
-  res.set({ 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': 'attachment; filename="menu-backup-' + new Date().toISOString().slice(0, 10) + '.json"', 'Cache-Control': 'no-store' }).send(JSON.stringify(out));
+app.get('/api/backup/ticket', auth('owner'), (req, res) => res.json({ tk: sign({ u: 'owner', x: Date.now() + 120000 }) }));
+app.get('/api/backup', (req, res, next) => { if (req.query.tk) req.headers['x-admin-token'] = String(req.query.tk); next(); }, auth('owner'), ah(async (req, res) => {
+  const files = await S.allFiles();
+  const head = JSON.stringify({ format: 'chef-menu-backup', version: 1, created: new Date().toISOString(), menu: MENU.d, users: USERS, orders: await S.listOrders(null, 5000), secret: SECRET_T });
+  res.set({ 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="menu-backup-' + new Date().toISOString().slice(0, 10) + '.json"', 'Cache-Control': 'no-store' });
+  try {
+    res.write(head.slice(0, -1) + ',"files":[');
+    let first = true;
+    for (const f of files) { res.write((first ? '' : ',') + JSON.stringify({ name: f.name, mime: f.mime, data: Buffer.from(f.data).toString('base64') })); first = false; }
+    res.end(']}');
+  } catch (e) { console.error(e); res.destroy(); }
 }));
 app.post('/api/restore', auth('owner'), express.json({ limit: '250mb' }), ah((req, res) => lock(async () => {
   const b = req.body;
@@ -288,7 +295,7 @@ app.post('/api/restore', auth('owner'), express.json({ limit: '250mb' }), ah((re
   if (Array.isArray(b.orders)) await S.replaceOrders(b.orders);
   if (b.secret && /^[a-f0-9]{16,128}$/.test(b.secret)) { SECRET_T = b.secret; await S.setKV('secret', { v: b.secret }); }
   await restoreCore(b.menu, Array.isArray(b.users) ? b.users : undefined);
-  res.json({ ok: true });
+  res.json({ ok: true, v: MENU.d._v, items: MENU.d.branches.reduce((n, x) => n + (x.items || []).length, 0), branches: MENU.d.branches.length, files: (b.files || []).length, orders: (b.orders || []).length, users: USERS.length });
 })));
 
 app.use(express.static(path.join(__dirname, 'public')));

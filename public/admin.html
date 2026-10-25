@@ -232,9 +232,22 @@ async function delO(id){if(!confirm('حذف هذا الطلب؟'))return;const r
 async function loadBk(){try{const r=await fetch('/api/backups',{headers:hdr()});if(r.ok){BK=await r.json();if(pg=='backup')draw()}}catch(x){}}
 async function mkBk(){const r=await fetch('/api/backups',{method:'POST',headers:hdr()});toast(r.ok?'تم إنشاء النسخة ✓':'تعذر الإنشاء');loadBk()}
 async function rsBk(id){if(!confirm('استعادة هذه النسخة ونشرها للجميع؟ (تُحفظ نسخة من الوضع الحالي أولاً)'))return;toast('جارٍ الاستعادة…');const r=await fetch('/api/backups/'+id+'/restore',{method:'POST',headers:hdr()});if(r.ok){SG={};await reload();await loadBk();toast('تمت الاستعادة والنشر ✓')}else toast('تعذرت الاستعادة')}
-async function dlBk(btn){btn.disabled=true;toast('جارٍ تجهيز النسخة…');try{const r=await fetch('/api/backup',{headers:hdr()});if(!r.ok)throw 0;const b=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='menu-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e4);toast('تم التنزيل ✓')}catch(x){toast('تعذر التنزيل')}btn.disabled=false}
-async function restoreF(btn){const f=$('#rf').files[0];if(!f){toast('اختر ملف النسخة أولاً');return}if(!confirm('سيتم استبدال كل البيانات الحالية بمحتوى هذا الملف ونشرها للجميع. متابعة؟'))return;
- btn.disabled=true;toast('جارٍ الاستيراد… قد يستغرق دقيقة');try{const txt=await f.text();if(txt.trim()[0]!='{')throw 0;const r=await fetch('/api/restore',{method:'POST',headers:hdr(),body:txt});if(r.ok){SG={};bi=0;await reload();await loadBk();toast('تم الاستيراد والنشر ✓')}else{const j=await r.json().catch(()=>({}));toast(j.error||'تعذر الاستيراد ('+r.status+')')}}catch(x){toast('الملف غير صالح')}btn.disabled=false}
+async function dlBk(btn){btn.disabled=true;toast('جارٍ تجهيز النسخة…');try{const r=await fetch('/api/backup/ticket',{headers:hdr()});
+ if(r.status==401||r.status==403){toast('انتهت الجلسة أو ليست لديك صلاحية المالك — سجّل الدخول بحساب المالك ('+r.status+')');btn.disabled=false;return}
+ if(!r.ok)throw new Error(r.status);const j=await r.json(),a=document.createElement('a');a.href='/api/backup?tk='+encodeURIComponent(j.tk);a.download='menu-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();toast('بدأ التنزيل — تحقق من مجلد التنزيلات ✓')}catch(x){toast('تعذر التنزيل ('+(x&&x.message||'شبكة')+')')}setTimeout(()=>{btn.disabled=false},3000)}
+async function restoreF(btn){const f=$('#rf').files[0];if(!f){toast('اختر ملف النسخة أولاً');return}
+ let txt,J;try{txt=await f.text();J=JSON.parse(txt)}catch(x){toast('الملف تالف أو ليس نسخة احتياطية (JSON غير صالح)');return}
+ if(!J||J.format!='chef-menu-backup'||!J.menu||!Array.isArray(J.menu.branches)){toast('هذا الملف ليس نسخة احتياطية من هذا المنيو');return}
+ const n=J.menu.branches.reduce((a,x)=>a+(x.items||[]).length,0),info='الملف صالح: '+J.menu.branches.length+' فرع، '+n+' صنف، '+(J.files||[]).length+' صورة/فيديو، '+(J.orders||[]).length+' طلب'+(J.created?'\nتاريخ النسخة: '+J.created.slice(0,16).replace('T',' '):'');
+ if(!confirm(info+'\n\nسيتم استبدال كل البيانات الحالية بهذا الملف ونشرها للجميع (وتُحفظ نسخة من الوضع الحالي أولاً). متابعة؟'))return;
+ btn.disabled=true;toast('جارٍ الرفع والتطبيق… قد يستغرق دقيقة');
+ try{const r=await fetch('/api/restore',{method:'POST',headers:hdr(),body:txt});
+  if(!r.ok){const j=await r.json().catch(()=>({}));toast(j.error||(r.status==401||r.status==403?'ليس لديك صلاحية المالك ('+r.status+')':r.status==413?'الملف كبير جداً (413)':'تعذر الاستيراد ('+r.status+')'));btn.disabled=false;return}
+  const R=await r.json();SG={};bi=0;await reload();await loadBk();
+  const c=await (await fetch('/api/v',{cache:'no-store'})).json();
+  const ok=c.v===R.v&&D&&D._v===R.v&&D.branches.reduce((a,x)=>a+(x.items||[]).length,0)===R.items;
+  toast(ok?'✓ تم الرفع والتطبيق والتحقق: '+R.branches+' فرع، '+R.items+' صنف، '+R.files+' ملف، '+R.orders+' طلب':'⚠️ رُفع الملف لكن لم يتطابق التحقق، حدّث الصفحة');
+ }catch(x){toast('انقطع الاتصال أثناء الرفع — تحقق من الصفحة ثم أعد المحاولة')}btn.disabled=false}
 /* مزامنة مباشرة: أي تعديل من مستخدم آخر يظهر هنا تلقائياً */
 let pc=0;async function poll(){if(pc||!TK||!ME||!D||document.hidden)return;pc=1;try{const j=await (await fetch('/api/v',{cache:'no-store'})).json();
  const a=document.activeElement,typing=a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!='checkbox';
