@@ -252,7 +252,7 @@ async function send(){
  if(noWa){SND=0;if(fail||!no){try{wn&&wn.close()}catch(x){}toast('تعذر إرسال الطلب، حاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent='إرسال الطلب'}return}
   cart={};$('#ov').innerHTML='';render();toast('✓ تم إرسال طلبك رقم #'+no);return}
  const nf=n=>Number(n||0).toLocaleString('en-US');
- let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.name}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
+ let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.wn||b.name.replace(/\s*سوق المدينة\s*/,' ').trim()}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
  if(TBL)m+=`\n🪑 الطاولة: ${TBL.n}`;
  if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
  m+=`\n\n\nالمجموع الكلي للطلب : ${nf(tot)} IQD`;
