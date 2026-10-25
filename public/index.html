@@ -244,15 +244,16 @@ async function send(){
  let wn=null;if(!noWa){try{wn=window.open('','_blank')}catch(x){}}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0);let no=null,fail=0;
  LS.set('c_nm',v('nm'));LS.set('c_ph',v('ph'));
- try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),7000);
+ for(let t=0;t<3&&!no;t++){try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),9000);
   const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id]})),name:v('nm'),phone:v('ph'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
-  if(r.ok){no=(await r.json()).no}else fail=1}catch(x){fail=1}
+  if(r.ok){no=(await r.json()).no}else{fail=1;if(r.status<500&&r.status!=429)break}}catch(x){fail=1}}
+ if(!no){SND=0;try{wn&&wn.close()}catch(x){}toast('تعذر تسجيل الطلب وأخذ رقمه، تحقق من الاتصال وحاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent=noWa?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}return}
  if(noWa){SND=0;if(fail||!no){try{wn&&wn.close()}catch(x){}toast('تعذر إرسال الطلب، حاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent='إرسال الطلب'}return}
   cart={};$('#ov').innerHTML='';render();toast('✓ تم إرسال طلبك رقم #'+no);return}
  const nf=n=>Number(n||0).toLocaleString('en-US');
- let m=`اهلا وسهلا بك بمطعم ${D.name}\nرقم الطلب الخاص بك هو ${no||'—'}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n${v('nm')}\n☎️ ${v('ph')}`;
+ let m=`اهلا وسهلا بك بمطعم ${D.name}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
  if(TBL)m+=`\n🪑 الطاولة: ${TBL.n}`;
- if(v('nt'))m+=`\n📌 ${v('nt')}`;
+ if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
  m+=`\n\n\nالمجموع الكلي للطلب : ${nf(tot)} IQD`;
  const url='https://wa.me/'+w+'?text='+encodeURIComponent(m);SND=0;if(btn){btn.disabled=false;btn.textContent='إرسال الطلب عبر واتساب 💬'}
  if(wn&&!wn.closed){wn.location.href=url}else{location.href=url}
