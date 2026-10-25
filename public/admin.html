@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>لوحة التحكم</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-<script src="/qr.js"></script>
+<script src="/qr.js"></script><script src="/themes.js"></script>
 <style>
 :root{--bg:#f8fafc;--cd:#fff;--nv:#052b52;--nv2:#0b4a5c;--gr:#1fa06f;--gr2:#e6f4ee;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--rd:#e11d48;box-sizing:border-box}
 *{box-sizing:border-box}html,body{margin:0}
@@ -108,12 +108,6 @@ async function up(blob,ext){const r=await fetch('/api/upload?ext='+ext,{method:'
 function imgPick(f,max,cb){if(!f)return;const r=new FileReader();r.onload=()=>{const m=new Image();m.onload=()=>{const s=Math.min(1,max/Math.max(m.width,m.height)),c=document.createElement('canvas');c.width=m.width*s;c.height=m.height*s;c.getContext('2d').drawImage(m,0,0,c.width,c.height);
  c.toBlob(async b=>{try{toast('جارٍ رفع الصورة…');cb(await up(b,'jpg'))}catch(x){toast(x==403?'ليس لديك صلاحية':'فشل رفع الصورة')}},'image/jpeg',.8)};m.src=r.result};r.readAsDataURL(f)}
 function emp(i,t,p){return `<div class="cd em"><i>${i}</i><b>${t}</b><p>${p}</p></div>`}
-const TH={classic:['كلاسيكي','🏛️',{bg:'#0b0b0e',cd:'#16161b',tx:'#ffffff',mu:'#a9a9b3',ac:'#e8c468',bd:'#2a2a32',ax:'#111111',cb:'#ffffff'}],
-modern:['عصري','✨',{bg:'#f8fafc',cd:'#ffffff',tx:'#0f172a',mu:'#64748b',ac:'#1fa06f',bd:'#e2e8f0',ax:'#ffffff',cb:'#cbd5e1'}],
-luxury:['فخم','👑',{bg:'#120d09',cd:'#1d1610',tx:'#f7efe2',mu:'#b3a58f',ac:'#c9a35a',bd:'#3a2d1f',ax:'#1a1208',cb:'#c9a35a'}],
-cafe:['مقهى','☕',{bg:'#f5ece0',cd:'#fffaf2',tx:'#3b2a1e',mu:'#85705f',ac:'#8a5a35',bd:'#e4d3bf',ax:'#ffffff',cb:'#8a5a35'}],
-fast:['وجبات سريعة','🔥',{bg:'#fff8e7',cd:'#ffffff',tx:'#1f1300',mu:'#7a6a4f',ac:'#e11d2e',bd:'#f1dfb0',ax:'#ffffff',cb:'#e11d2e'}],
-plain:['بسيط','⬜',{bg:'#ffffff',cd:'#f4f4f5',tx:'#18181b',mu:'#71717a',ac:'#18181b',bd:'#e4e4e7',ax:'#ffffff',cb:'#d4d4d8'}]};
 let PT=null;
 function thumb(k,id,im){return `<button class="th" data-p="edit" data-k="${k}" data-i="${e(id)}" onclick="pickImg(this.dataset.k,this.dataset.i)" style="${im?`background-image:url(${im})`:''}">${im?'':'🍽'}<span class="cam">📷</span></button>`}
 function pickImg(k,id){PT={k,id};const f=$('#fp');f.value='';f.click()}
@@ -156,7 +150,7 @@ branches(){return `<div class="hd"><div><h1>الفروع</h1><p class="sub">لك
 offers(){const b=B(),os=b.offers||[],mn=b.items.filter(i=>i.o>i.p),nm=o=>(o.scope=='all'?['كل المنيو']:o.scope=='cat'?o.t:o.t.map(id=>(b.items.find(i=>i.id==id)||{}).n)).filter(Boolean).join('، ');
  return `<div class="hd"><div><h1>العروض والخصومات</h1><p class="sub">خصومات تظهر على المنيو، الزبون يشوف السعر الجديد والقديم مشطوب</p></div><button class="btn" data-p="offers" data-h="1" onclick="offM()">+ إضافة خصم</button></div>
  ${os.length||mn.length?`<div class="cd">${os.map(o=>`<div class="ro"><div class="inf"><b>${e(o.name)}</b><small>${e(nm(o))}${o.from||o.to?' · '+e(o.from||'…')+' ← '+e(o.to||'…'):''}</small></div><div class="act"><b style="color:var(--gr)">${o.type=='pct'?o.val+'%':money(o.val)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${o.id}" onclick="rmO(this.dataset.i)">حذف</button></div></div>`).join('')}${mn.map(i=>`<div class="ro"><div class="inf"><b>${e(i.n)}</b><small>سعر مخفّض يدوياً · <s>${money(i.o)}</s></small></div><div class="act"><b style="color:var(--gr)">${money(i.p)}</b><button class="btn r s" data-p="offers" data-h="1" data-i="${i.id}" onclick="rmOff(this.dataset.i)">إزالة</button></div></div>`).join('')}</div>`:emp('🎯','لا توجد عروض','أضف خصماً على كل المنيو أو أقسام أو منتجات محددة.')}`},
-themes(){const cur=D.theme||'classic';return `<h1>السمات</h1><p class="sub">اختر تصميماً جاهزاً لألوان قائمة الزبائن</p><div class="cd"><div class="cb"><div class="gr" data-p="info" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TH).map(([k,v])=>`<button class="tc ${k==cur?'on':''}" data-k="${k}" onclick="setTh(this.dataset.k)" style="background:${v[2].bg};color:${v[2].tx}"><span style="font-size:34px">${v[1]}</span><b>${v[0]}</b><span class="sws"><i style="background:${v[2].ac}"></i><i style="background:${v[2].cd};border:1px solid ${v[2].bd}"></i><i style="background:${v[2].tx}"></i></span></button>`).join('')}</div></div></div>`},
+themes(){const cur=D.theme||'classic';return `<h1>السمات</h1><p class="sub">اختر تصميماً جاهزاً لألوان قائمة الزبائن</p><div class="cd"><div class="cb"><div class="gr" data-p="info" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TH).map(([k,v])=>`<button class="tc ${k==cur?'on':''}" data-k="${k}" onclick="setTh(this.dataset.k)" style="background:${v[2].bg};color:${v[2].tx}"><span style="font-size:34px">${v[1]}</span><b>${v[0]}</b><small style="opacity:.7">${THL[v[3]||'grid']}</small><span class="sws"><i style="background:${v[2].ac}"></i><i style="background:${v[2].cd};border:1px solid ${v[2].bd}"></i><i style="background:${v[2].tx}"></i></span></button>`).join('')}</div></div></div>`},
 rates(){return `<h1>التقييمات</h1><p class="sub">تقييمات الزبائن لطلباتك وأصنافك</p>${emp('⭐','لا توجد تقييمات بعد','تظهر هنا تقييمات الزبائن بعد تفعيل نظام التقييم.')}`},
 backup(){return `<h1>النسخ الاحتياطي</h1><p class="sub">كل بياناتك تُحفظ على السيرفر وتظهر للجميع مباشرة. هنا تأخذ نسخة تحتفظ بها، أو تستعيد نسخة ونشرها للجميع</p>
  <div class="cd"><div class="ch">نسخة كاملة على جهازك</div><div class="cb"><p class="hint" style="margin-top:0">ملف واحد يحوي: المنيو والأسعار والأقسام والصور والفيديو والسمات والمستخدمين والطاولات (ورموزها) والطلبات. احتفظ به في مكان آمن، فهو يحوي بيانات حساسة.</p><button class="btn" onclick="dlBk(this)">⬇️ تنزيل نسخة احتياطية كاملة</button></div></div>
