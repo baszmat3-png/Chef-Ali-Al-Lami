@@ -16,6 +16,11 @@ async function pgStore(url) {
     'create table if not exists files (name text primary key, mime text not null, data bytea not null, ts timestamptz not null default now())',
     'create table if not exists orders (id text primary key, ts timestamptz not null default now(), branch text, data jsonb not null)',
     'create table if not exists backups (id serial primary key, ts timestamptz not null default now(), label text, data jsonb not null)',
+    'alter table files add column if not exists ts timestamptz not null default now()',
+    'alter table orders add column if not exists ts timestamptz not null default now()',
+    'alter table orders add column if not exists branch text',
+    'alter table backups add column if not exists ts timestamptz not null default now()',
+    'alter table backups add column if not exists label text',
     'create index if not exists orders_ts on orders (ts desc)'
   ];
   let pool = mk(local ? false : { rejectUnauthorized: false });
@@ -33,8 +38,8 @@ async function pgStore(url) {
     async setKV(id, v) { await q('insert into kv(id,data) values($1,$2) on conflict (id) do update set data=excluded.data', [id, JSON.stringify(v)]); },
     async putFile(name, mime, buf) { await q('insert into files(name,mime,data) values($1,$2,$3) on conflict (name) do nothing', [name, mime, buf]); },
     async getFile(name) { const r = await q('select mime,data from files where name=$1', [name]); return r.rows[0] || null; },
-    async allFiles() { const r = await q('select name,mime,data from files order by ts'); return r.rows; },
-    async listFiles() { const r = await q('select name,mime from files order by ts'); return r.rows; },
+    async allFiles() { const r = await q('select name,mime,data from files order by name'); return r.rows; },
+    async listFiles() { const r = await q('select name,mime from files order by name'); return r.rows; },
     async addOrder(o) { await q('insert into orders(id,ts,branch,data) values($1,$2,$3,$4)', [o.id, o.ts, o.b, JSON.stringify(o)]); },
     async listOrders(b, n) { const r = await q('select data from orders where ($1::text is null or branch=$1) order by ts desc limit $2', [b || null, n]); return r.rows.map(x => x.data); },
     async recentOrders(n) { const r = await q('select data from orders order by ts desc limit $1', [n]); return r.rows.map(x => x.data); },
