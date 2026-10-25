@@ -24,6 +24,23 @@ let RT = [];                 // تقييمات الزبائن (الأحدث أو
 let TOP = null;              // الأصناف الأكثر طلباً (تخزين مؤقت)
 let lastAuto = 0;
 
+/* ---- جدول ظهور الفئات (بتوقيت بغداد) ---- */
+const bagMin = () => { const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Baghdad', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()); return (+p.find(x => x.type === 'hour').value % 24) * 60 + +p.find(x => x.type === 'minute').value; };
+const hm = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '')); return m ? (+m[1]) * 60 + +m[2] : null; };
+const openNow = (br, c) => { const s = br.csch && br.csch[c], f = s && hm(s.from), t = s && hm(s.to); if (f == null || t == null || f === t) return true; const m = bagMin(); return f < t ? (m >= f && m < t) : (m >= f || m < t); };
+function schMigrate(d) {   // مرة واحدة لكل فرع: الشرقي 12:30–18:00 والفطور 07:00–12:00 (يمكن تعديلها من لوحة التحكم)
+  let ch = false;
+  for (const b of d.branches) {
+    if (b.schMig) continue; b.schMig = 1; ch = true; b.csch = b.csch || {};
+    for (const c of b.cats || []) {
+      if (b.csch[c]) continue;
+      if (/الشرقي/.test(c)) b.csch[c] = { from: '12:30', to: '18:00' };
+      else if (/فطور/.test(c)) b.csch[c] = { from: '07:00', to: '12:00' };
+    }
+  }
+  return ch;
+}
+
 let chain = Promise.resolve();
 const lock = fn => { const r = chain.then(fn, fn); chain = r.catch(() => {}); return r; };
 
@@ -77,7 +94,7 @@ function need(o, n) {
         const A = a.cats || [], B = b.cats || [];
         if (B.some(c => !A.includes(c))) r.add('add');
         if (A.some(c => !B.includes(c))) r.add('delete');
-      } else if (k === 'cimg' || k === 'ctr') r.add('edit');
+      } else if (k === 'cimg' || k === 'ctr' || k === 'csch') r.add('edit');
       else if (k === 'offers') r.add('offers');
       else if (k === 'tables') r.add('tables');
       else r.add('info');
@@ -160,7 +177,7 @@ app.get('/api/menu', (req, res) => {
   if (req.get('if-none-match') === tag) return res.status(304).end();
   res.type('json').send(MENU.s);
 });
-app.get('/api/v', (req, res) => res.set('Cache-Control', 'no-store').json({ v: MENU.d._v | 0 }));
+app.get('/api/v', (req, res) => res.set('Cache-Control', 'no-store').json({ v: MENU.d._v | 0, now: Date.now() }));
 app.post('/api/menu', auth(), express.json({ limit: '50mb' }), ah((req, res) => lock(async () => {
   const d = req.body, cur = MENU.d;
   if (!d || !Array.isArray(d.branches) || !d.branches.length) return res.status(400).json({ error: 'bad data' });
@@ -244,6 +261,7 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
   for (const x of b.items) {
     const it = br.items.find(i => i.id === x.id), q = Math.floor(Number(x.q));
     if (!it || it.a === false || !(q >= 1 && q <= 99)) return res.status(400).json({ error: 'bad item' });
+    if (!openNow(br, it.c)) return res.status(400).json({ error: 'closed' });
     items.push({ id: it.id, n: it.n, q, p: price(br, it) });
   }
   let table = null;
@@ -350,6 +368,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
+  if (schMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];

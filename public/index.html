@@ -167,6 +167,12 @@ function splash(){
  <div>${D.branches.length>1?`<div class="mu" style="color:#ddd">${T('اختر الفرع')}</div><div class="bps">${D.branches.map((x,i)=>`<button class="bp ${i==bi?'on':''}" onclick="bi=${i};cart={};splash()">${e(x.name)}</button>`).join('')}</div>`:''}<button class="go" onclick="sp=0;render()">${T('دخول المنيو')}</button></div>
  ${socs(b)}</div></div>`;
 }
+let SKEW=0;
+const bgNow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Baghdad',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date(Date.now()+SKEW));return (+p.find(x=>x.type=='hour').value%24)*60+ +p.find(x=>x.type=='minute').value};
+const hmn=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));return m?(+m[1])*60+ +m[2]:null};
+function isOpen(b,c){const s=b.csch&&b.csch[c],f=s&&hmn(s.from),t=s&&hmn(s.to);if(f==null||t==null||f===t)return true;const m=bgNow();return f<t?(m>=f&&m<t):(m>=f||m<t)}
+function applySch(){let ch=false;D.branches.forEach(x=>{const all=x.all||x.items,n=all.filter(i=>isOpen(x,i.c));if(!x.items||n.length!=x.items.length)ch=true;x.items=n});
+ const b=B();if(b)Object.keys(cart).forEach(id=>{if(!b.items.some(i=>i.id==id))delete cart[id]});return ch}
 function catsOf(b){return b.cats.filter(c=>b.items.some(i=>i.c==c))}
 function topOf(b){if(D.noTop)return[];return (TOP[b.id]||[]).map(id=>b.items.find(i=>i.id==id)).filter(Boolean).slice(0,8)}
 function drw(o){const d=$('#dw');if(!o){d.innerHTML='';return}const b=B(),cs=catsOf(b),cur=(cat==''||cat=='*')?'*':(cs.includes(cat)?cat:'*'),tp=topOf(b);
@@ -264,19 +270,19 @@ function applyOffers(b){const n=new Date(Date.now()-new Date().getTimezoneOffset
  b.items.forEach(i=>{if(i.o>i.p)return;let best=i.p;os.forEach(o=>{const t=o.t||[];if(!(o.scope=='all'||o.scope=='cat'&&t.includes(i.c)||o.scope=='item'&&t.includes(i.id)))return;const np=o.type=='fix'?Math.max(0,i.p-o.val):Math.round(i.p*(1-o.val/100));if(np<best)best=np});if(best<i.p){i.o=i.p;i.p=best}})}
 /* ---------- تحميل ومزامنة مباشرة ---------- */
 async function load(first){
- const [m,t,rs]=await Promise.all([fetch('/api/menu',{cache:'no-cache'}).then(r=>r.json()),fetch('/api/top',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({})),fetch('/api/rating-sum',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({}))]);
+ const [m,t,rs]=await Promise.all([fetch('/api/menu',{cache:'no-cache'}).then(r=>r.json()),fetch('/api/top',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({})),fetch('/api/rating-sum',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({})),fetch('/api/v',{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j.now)SKEW=j.now-Date.now()}).catch(()=>{})]);
  const id=(B()||{}).id;
  D=m;TOP=t||{};RS=rs||{};
- D.branches.forEach(x=>{x.items=(x.items||[]).filter(i=>i.a!==false);applyOffers(x)});applyTheme(D.theme);
+ D.branches.forEach(x=>{x.items=(x.items||[]).filter(i=>i.a!==false);applyOffers(x);x.all=x.items});applySch();applyTheme(D.theme);
  const k=D.branches.findIndex(b=>b.id==id);if(k>=0)bi=k;else if(!first){bi=0;cat=''}
 }
 let ver=-1,chk=0;
 async function poll(){
  if(chk||document.hidden)return;chk=1;
- try{const j=await (await fetch('/api/v',{cache:'no-store'})).json();
+ try{const j=await (await fetch('/api/v',{cache:'no-store'})).json();if(j.now)SKEW=j.now-Date.now();
   if(j.v!==ver){ver=j.v;const open=$('#ov').innerHTML;await load();if(!open)render()}}catch(x){}
  chk=0}
-setInterval(poll,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+setInterval(poll,20000);setInterval(()=>{if(D&&D.branches.length&&applySch()&&!sp&&!$('#ov').innerHTML)render()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
 const h0=location.hash.slice(1);
 (async()=>{try{await load(true);ver=D._v|0}catch(x){}
  if(TBL){const k=D.branches.findIndex(b=>b.id==TBL.b);if(k<0){location.replace('/');return}bi=k;sp=0}
