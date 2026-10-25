@@ -262,7 +262,7 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
     const it = br.items.find(i => i.id === x.id), q = Math.floor(Number(x.q));
     if (!it || it.a === false || !(q >= 1 && q <= 99)) return res.status(400).json({ error: 'bad item' });
     if (!openNow(br, it.c)) return res.status(400).json({ error: 'closed' });
-    items.push({ id: it.id, n: it.n, q, p: price(br, it) });
+    items.push({ id: it.id, n: it.n, q, p: price(br, it), ...(clip(x.n, 100) ? { nt: clip(x.n, 100) } : {}) });
   }
   let table = null;
   if (b.tk && b.tk.t) {

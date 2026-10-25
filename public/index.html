@@ -23,6 +23,7 @@ body{background:var(--bg);color:var(--tx);font:16px/1.5 Tajawal,system-ui,Tahoma
 .alh{font-size:20px;margin:22px 0 10px;color:var(--tx)}.alh small{color:var(--mu);font-weight:400;font-size:14px}
 .alc{background:var(--cd);border:1px solid var(--bd);border-radius:18px;margin:0 0 14px;overflow:hidden}.alc h3{margin:0;padding:12px 14px;font-size:18px;background:var(--bd);color:var(--tx)}.alc h3 small{color:var(--mu);font-weight:400;font-size:13px}.alr{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--bd)}.alc h3+.alr{border-top:0}.ali{flex:1;min-width:0}.ali b{display:block;font-size:16px;color:var(--tx)}.ali small{display:block;color:var(--mu);font-size:13px;line-height:1.5;margin-top:2px}.alp{font-weight:800;color:var(--pr,var(--ac));white-space:nowrap;text-align:center}.alp s{display:block;color:var(--mu);font-size:12px;font-weight:400}.alr .pl{min-width:40px;height:40px;font-size:24px}.alr .qp{height:40px}
 .gr .qp button{width:24px}.gr .qp b{min-width:14px}.gr .pp span{font-size:16px}.L-card1 .gr .pp span,.L-list .gr .pp span{font-size:18px}.L-card1 .gr .qp button,.L-list .gr .qp button{width:28px}
+.inn{margin:8px 0 0;font-size:14px;padding:8px 10px}
 .noord{background:#fee2e2;color:#991b1b;border-radius:14px;padding:8px 14px;font-weight:700;margin:8px 0}.nt{display:block;white-space:pre-line}
 .soc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
 .soc a{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800;font-size:20px}
@@ -131,7 +132,7 @@ input,select,textarea{width:100%;font:inherit;padding:9px;border:1px solid var(-
 <script>
 const TBL=window.__TBL||null;
 let D={name:'',branches:[]},TOP={},RS={};
-let sp=1,bi=0,cat='',cart={};
+let sp=1,bi=0,cat='',cart={},IN={};
 let FAV=new Set();try{FAV=new Set(JSON.parse(localStorage.getItem('fav')||'[]'))}catch(x){}
 const HS=on=>`<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 20.6l-1.3-1.2C5.9 15 3 12.3 3 8.9 3 6.2 5.1 4.2 7.7 4.2c1.6 0 3.2.8 4.3 2 1.1-1.2 2.7-2 4.3-2C18.9 4.2 21 6.2 21 8.9c0 3.4-2.9 6.1-7.7 10.5L12 20.6z" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 function fav(id){FAV.has(id)?FAV.delete(id):FAV.add(id);try{localStorage.setItem('fav',JSON.stringify([...FAV]))}catch(x){}render()}
@@ -141,9 +142,9 @@ const money=n=>Number(n||0).toLocaleString('en-US')+' د.ع';
 const B=()=>D.branches[bi];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2600)}
 function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
-function pickB(i){bi=i;cat='';cart={};render()}
-const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','العنوان':'Address','كل الأصناف':'All items'},
- ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','العنوان':'ناونیشان','كل الأصناف':'هەموو خواردنەکان'}};
+function pickB(i){bi=i;cat='';cart={};IN={};render()}
+const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','ملاحظة لهذا الصنف':'Note for this item','اختياري':'optional','العنوان':'Address','كل الأصناف':'All items'},
+ ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','ملاحظة لهذا الصنف':'تێبینی بۆ ئەم خواردنە','اختياري':'ئارەزوومەندانە','العنوان':'ناونیشان','كل الأصناف':'هەموو خواردنەکان'}};
 const LGN={ar:'عربي',en:'EN',ku:'کوردی'};
 const LGo=()=>{try{return localStorage.getItem('lg')||'ar'}catch(x){return 'ar'}};
 const T=s=>{const l=LGo();return (UI[l]&&UI[l][s])||s};
@@ -216,7 +217,7 @@ function sheet(){
  if(!ls.length){$('#ov').innerHTML='';return}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0),v=id=>($('#'+id)||{}).value||'';
  const keep={nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),ad:v('ad')||LS.get('c_ad'),nt:v('nt')};
- $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>${T('طلبك')} — ${e(b.name)}</h1>${ls.map(i=>`<div class="row box"><span>${cart[i.id]}× ${e(tn(i))}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div>`).join('')}
+ $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>${T('طلبك')} — ${e(b.name)}</h1>${ls.map(i=>`<div class="box"><div class="row"><span>${cart[i.id]}× ${e(tn(i))}</span><b style="text-align:left">${money(cart[i.id]*i.p)}</b></div><input class="inn" maxlength="100" placeholder="${T('ملاحظة لهذا الصنف')} (${T('اختياري')})" value="${e(IN[i.id]||'')}" oninput="IN['${i.id}']=this.value"></div>`).join('')}
  <h3>${T('المجموع')}: ${money(tot)}</h3>
  ${TBL?`<div class="box tbx"><span>🪑 رقم الطاولة</span><small>(ثابت)</small><b>${e(TBL.n)}</b></div>`:''}
  <label class="fl" for="nm">${T('الاسم')}</label><input id="nm" autocomplete="name" placeholder="اكتب اسمك" value="${e(keep.nm)}">
@@ -254,13 +255,13 @@ async function send(){
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0);let no=null,fail=0;
  LS.set('c_nm',v('nm'));LS.set('c_ph',v('ph'));LS.set('c_ad',v('ad'));
  for(let t=0;t<3&&!no;t++){try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),9000);
-  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id]})),name:v('nm'),phone:v('ph'),addr:v('ad'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
+  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id],n:(IN[i.id]||'').trim()})),name:v('nm'),phone:v('ph'),addr:v('ad'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
   if(r.ok){no=(await r.json()).no}else{fail=1;if(r.status<500&&r.status!=429)break}}catch(x){fail=1}}
  if(!no){SND=0;try{wn&&wn.close()}catch(x){}toast('تعذر تسجيل الطلب وأخذ رقمه، تحقق من الاتصال وحاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent=noWa?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}return}
  if(noWa){SND=0;if(fail||!no){try{wn&&wn.close()}catch(x){}toast('تعذر إرسال الطلب، حاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent='إرسال الطلب'}return}
-  cart={};$('#ov').innerHTML='';render();toast('✓ تم إرسال طلبك رقم #'+no);return}
+  cart={};IN={};$('#ov').innerHTML='';render();toast('✓ تم إرسال طلبك رقم #'+no);return}
  const nf=n=>Number(n||0).toLocaleString('en-US');
- let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.wn||b.name.replace(/\s*سوق المدينة\s*/,' ').trim()}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
+ let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.wn||b.name.replace(/\s*سوق المدينة\s*/,' ').trim()}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`+((IN[i.id]||'').trim()?`\n   📝 ${IN[i.id].trim()}`:'')).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
  if(TBL)m+=`\n🪑 الطاولة: ${TBL.n}`;
  if(v('ad'))m+=`\n📌 ${v('ad')}`;
  if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
