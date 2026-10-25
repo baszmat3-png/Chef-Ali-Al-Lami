@@ -139,7 +139,6 @@ rest(){const b=B();return `<h1>المطعم</h1><p class="sub">إدارة ملف
  <div class="cd"><div class="ch">خيارات الفرع</div><div class="cb">
  ${tgl('استقبال الطلبات الإلكترونية',!b.noOrd,"set('noOrd',!this.checked);draw()",'أوقف هذا الخيار لإخفاء زر «الطلب» مؤقتاً من قائمة هذا الفرع (مثلاً عند إغلاق المطبخ).')}
  ${tgl('عرض التقييمات للعامة',!!b.rt,"set('rt',this.checked)",'عند التفعيل يظهر زر «قيّم تجربتك» ومتوسط التقييم للزبائن على المنيو. التقييمات متاحة لك دائماً في صفحة «التقييمات».')}
- ${tgl('الظهور في تطبيق ميراق',!!b.mq,"set('mq',this.checked)",'علامة فقط لهذا الفرع. لا يوجد ربط فعلي مع تطبيق ميراق حالياً، ولن يتأثر رابط المنيو الخاص بك.')}
  ${tgl('إشعارات الواتساب',!b.waOff,"set('waOff',!this.checked);draw()",/^07\d{9}$/.test(String(b.wa||'').replace(/\s/g,''))||b.waOff?'عند التفعيل يفتح الزبون واتساب برسالة الطلب إلى رقم الفرع. عند الإيقاف يُسجَّل الطلب في «الطلبات» فقط.':'<span style="color:#dc2626">أدخل رقم واتساب صحيحاً أولاً، ثم فعّل الإشعارات.</span>')}
  ${tgl('طباعة الطلبات في المطبخ',!!b.kp,"set('kp',this.checked)",'عند التفعيل يُطبع كل طلب جديد تلقائياً على طابعة المطبخ. يتطلب فتح شاشة لوحة التحكم على حاسبة الكاشير مع طابعة موصولة.')}
  </div></div>
@@ -283,7 +282,7 @@ async function mkBk(){const r=await fetch('/api/backups',{method:'POST',headers:
 async function rsBk(id){if(!confirm('استعادة هذه النسخة ونشرها للجميع؟ (تُحفظ نسخة من الوضع الحالي أولاً)'))return;toast('جارٍ الاستعادة…');const r=await fetch('/api/backups/'+id+'/restore',{method:'POST',headers:hdr()});if(r.ok){SG={};await reload();await loadBk();toast('تمت الاستعادة والنشر ✓')}else toast('تعذرت الاستعادة')}
 async function dlBk(btn,share){btn.disabled=true;toast('جارٍ تجهيز النسخة… قد يستغرق دقيقة');
  try{const r=await fetch('/api/backup',{headers:hdr(),cache:'no-store'});
-  if(!r.ok){toast(r.status==401||r.status==403?'انتهت الجلسة أو ليست لديك صلاحية المالك — سجّل الدخول من جديد ('+r.status+')':'تعذر تجهيز النسخة على السيرفر ('+r.status+')');btn.disabled=false;return}
+  if(!r.ok){let dt='';try{dt=(await r.json()).detail||''}catch(x){}toast(r.status==401||r.status==403?'انتهت الجلسة أو ليست لديك صلاحية المالك — سجّل الدخول من جديد ('+r.status+')':'تعذر تجهيز النسخة على السيرفر ('+r.status+')'+(dt?' — '+dt:''));btn.disabled=false;return}
   const b=await r.blob(),name='menu-backup-'+new Date().toISOString().slice(0,10)+'.json',mb=(b.size/1048576).toFixed(1)+' MB';
   const f=new File([b],name,{type:'application/json'});
   if(share&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:name});toast('تمت المشاركة ('+mb+') ✓')}catch(x){if(x&&x.name!='AbortError')toast('تعذرت المشاركة، جرّب زر التنزيل')}}
