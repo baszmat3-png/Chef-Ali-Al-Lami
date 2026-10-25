@@ -19,6 +19,8 @@ let S;                       // التخزين
 let MENU = null;             // { d, s } نسخة المنيو في الذاكرة (القراءة العامة سريعة)
 let USERS = [];
 let SECRET_T = '';           // سر توقيع رموز الطاولات (يُحفظ مع البيانات فلا يتغير بتغيّر كلمة المرور)
+let CTR = 9900;              // رقم الطلب التالي
+let RT = [];                 // تقييمات الزبائن (الأحدث أولاً)
 let TOP = null;              // الأصناف الأكثر طلباً (تخزين مؤقت)
 let lastAuto = 0;
 
@@ -124,6 +126,15 @@ app.post('/api/login', js, (req, res) => {
   res.json({ token: sign({ u: u.id, x: Date.now() + 30 * 864e5 }), user: u });
 });
 app.get('/api/me', auth(), (req, res) => res.json(req.user));
+app.post('/api/me/password', auth(), js, ah(async (req, res) => {
+  if (req.user.owner) return res.status(400).json({ error: 'كلمة مرور المالك تُغيَّر من إعدادات Render (ADMIN_PASSWORD)' });
+  const b = req.body || {}, o = String(b.old || ''), n = String(b.new || '');
+  const L = USERS.map(x => ({ ...x })), u = L.find(x => x.id === req.user.id);
+  if (!u || !seq(hash(o, u.salt), u.hash)) return res.status(403).json({ error: 'كلمة المرور الحالية غير صحيحة' });
+  if (n.length < 6) return res.status(400).json({ error: 'الرمز الجديد 6 أحرف على الأقل' });
+  u.salt = crypto.randomBytes(16).toString('hex'); u.hash = hash(n, u.salt);
+  await S.setKV('users', L); USERS = L; res.json({ ok: true });
+}));
 app.get('/api/users', auth('owner'), (req, res) => res.json(USERS.map(pub)));
 app.post('/api/users', auth('owner'), js, ah(async (req, res) => {
   const b = req.body || {}, name = String(b.name || '').trim().slice(0, 60), email = String(b.email || '').trim().toLowerCase().slice(0, 100), pw = String(b.password || '');
@@ -243,8 +254,9 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
   const o = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), ts: new Date().toISOString(), b: br.id, bn: br.name, table,
     name: clip(b.name, 60), phone: clip(b.phone, 25), notes: clip(b.notes, 300), items, total: items.reduce((s, i) => s + i.p * i.q, 0) };
   if (!o.name || o.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'bad contact' });
-  await S.addOrder(o); TOP = null;
-  res.json({ ok: true, id: o.id });
+  await lock(async () => { o.no = CTR++; await S.setKV('ctr', { n: CTR }); await S.addOrder(o); });
+  TOP = null;
+  res.json({ ok: true, id: o.id, no: o.no });
 }));
 app.get('/api/orders', auth(), ah(async (req, res) => res.set('Cache-Control', 'no-store').json(await S.listOrders(req.query.b ? String(req.query.b) : null, 200))));
 app.delete('/api/orders/:id', auth('delete'), ah(async (req, res) => { await S.delOrder(req.params.id); TOP = null; res.json({ ok: true }); }));
@@ -258,6 +270,23 @@ app.get('/api/top', ah(async (req, res) => {
   }
   res.set('Cache-Control', 'no-cache').json(TOP);
 }));
+
+/* ---- التقييمات ---- */
+const rLim = new Map();
+const rateLimited = k => { const n = Date.now(), a = (rLim.get(k) || []).filter(t => n - t < 36e5); a.push(n); rLim.set(k, a); return a.length > 5; };
+app.post('/api/rate', express.json({ limit: '10kb' }), ah(async (req, res) => {
+  if (rateLimited(req.ip)) return res.status(429).json({ error: 'many' });
+  const b = req.body || {}, br = MENU.d.branches.find(x => x.id === b.b), st = Math.round(Number(b.s));
+  if (!br || !br.rt || !(st >= 1 && st <= 5)) return res.status(400).json({ error: 'bad' });
+  RT.unshift({ id: Date.now().toString(36) + crypto.randomBytes(2).toString('hex'), ts: new Date().toISOString(), b: br.id, s: st, c: clip(b.c, 300), n: clip(b.n, 40) });
+  RT = RT.slice(0, 2000); await S.setKV('ratings', RT); res.json({ ok: true });
+}));
+app.get('/api/rating-sum', (req, res) => {
+  const o = {}; MENU.d.branches.filter(b => b.rt).forEach(b => { const l = RT.filter(r => r.b === b.id); if (l.length) o[b.id] = { a: Math.round(l.reduce((x, r) => x + r.s, 0) / l.length * 10) / 10, n: l.length }; });
+  res.set('Cache-Control', 'no-cache').json(o);
+});
+app.get('/api/rates', auth(), (req, res) => res.set('Cache-Control', 'no-store').json(RT.filter(r => !req.query.b || r.b === String(req.query.b)).slice(0, 300)));
+app.delete('/api/rates/:id', auth('delete'), ah(async (req, res) => { RT = RT.filter(r => r.id !== req.params.id); await S.setKV('ratings', RT); res.json({ ok: true }); }));
 
 /* ---- النسخ الاحتياطي والاستيراد (للمالك) ---- */
 app.get('/api/backups', auth('owner'), ah(async (req, res) => res.json(await S.listBackups())));
@@ -274,7 +303,7 @@ app.post('/api/backups/:id/restore', auth('owner'), ah((req, res) => lock(async 
 app.get('/api/backup/ticket', auth('owner'), (req, res) => res.json({ tk: sign({ u: 'owner', x: Date.now() + 120000 }) }));
 app.get('/api/backup', (req, res, next) => { if (req.query.tk) req.headers['x-admin-token'] = String(req.query.tk); next(); }, auth('owner'), ah(async (req, res) => {
   const files = await S.allFiles();
-  const head = JSON.stringify({ format: 'chef-menu-backup', version: 1, created: new Date().toISOString(), menu: MENU.d, users: USERS, orders: await S.listOrders(null, 5000), secret: SECRET_T });
+  const head = JSON.stringify({ format: 'chef-menu-backup', version: 1, created: new Date().toISOString(), menu: MENU.d, users: USERS, orders: await S.listOrders(null, 5000), ratings: RT, ctr: CTR, secret: SECRET_T });
   res.set({ 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="menu-backup-' + new Date().toISOString().slice(0, 10) + '.json"', 'Cache-Control': 'no-store' });
   try {
     res.write(head.slice(0, -1) + ',"files":[');
@@ -293,6 +322,8 @@ app.post('/api/restore', auth('owner'), express.json({ limit: '250mb' }), ah((re
     await S.putFile(f.name, MIME[ext], Buffer.from(String(f.data || ''), 'base64'));
   }
   if (Array.isArray(b.orders)) await S.replaceOrders(b.orders);
+  if (Array.isArray(b.orders)) { const mx = Math.max(0, ...b.orders.map(o => o.no | 0)); CTR = Math.max(CTR, (b.ctr | 0), mx + 1, 9900); await S.setKV('ctr', { n: CTR }); }
+  if (Array.isArray(b.ratings)) { RT = b.ratings.slice(0, 2000); await S.setKV('ratings', RT); }
   if (b.secret && /^[a-f0-9]{16,128}$/.test(b.secret)) { SECRET_T = b.secret; await S.setKV('secret', { v: b.secret }); }
   await restoreCore(b.menu, Array.isArray(b.users) ? b.users : undefined);
   res.json({ ok: true, v: MENU.d._v, items: MENU.d.branches.reduce((n, x) => n + (x.items || []).length, 0), branches: MENU.d.branches.length, files: (b.files || []).length, orders: (b.orders || []).length, users: USERS.length });
@@ -308,6 +339,8 @@ app.use(express.static(path.join(__dirname, 'public')));
   MENU = mkMenu(d);
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
+  RT = (await S.getKV('ratings')) || [];
+  { const c = await S.getKV('ctr'); CTR = Math.max(9900, c && c.n | 0); }
   const sec = await S.getKV('secret');
   if (sec && sec.v) SECRET_T = sec.v; else { SECRET_T = crypto.randomBytes(24).toString('hex'); await S.setKV('secret', { v: SECRET_T }); }
   app.listen(process.env.PORT || 3000, () => console.log('Menu running on', process.env.PORT || 3000));
