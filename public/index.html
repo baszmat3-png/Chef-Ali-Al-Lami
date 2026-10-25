@@ -18,7 +18,8 @@ body{background:var(--bg);color:var(--tx);font:16px/1.5 Tajawal,system-ui,Tahoma
 .ln{display:block;width:70px;height:3px;background:var(--ac);margin:8px auto 14px;border-radius:3px}
 .mu{display:block;color:var(--mu);margin:4px 0;text-decoration:none}
 .pill{display:inline-block;border:2px solid var(--bd);border-radius:22px;padding:5px 16px;margin:8px 0;background:var(--cd)}
-.soc{display:flex;gap:10px;justify-content:center;margin:10px 0}
+.noord{background:#fee2e2;color:#991b1b;border-radius:14px;padding:8px 14px;font-weight:700;margin:8px 0}.nt{display:block;white-space:pre-line}
+.soc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
 .soc a{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800;font-size:20px}
 .soc .mp{width:auto;border-radius:24px;padding:0 20px;background:#2d2d33;font-size:16px}
 .of{display:inline-block;background:linear-gradient(90deg,#e8365d,#f0546f);border-radius:24px;padding:8px 22px;margin:16px 0 6px;font-weight:700}
@@ -137,7 +138,11 @@ function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearT
 function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
 function pickB(i){bi=i;cat='';cart={};render()}
 function u(s){return /^https?:\/\//.test(s||'')?e(s):''}
-function socs(b){const s=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank" rel="noopener" style="background:${bg}">${t}</a>`:'';return `<div class="soc">${s('map','#2d2d33','📍 الموقع').replace('<a ','<a class="mp" ')}${s('tt','#000','♪')}${s('fb','#1877f2','f')}${s('ig','linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)','◎')}</div>`}
+const GOVS=1;
+function phs(b){const l=(Array.isArray(b.ph)?b.ph:[]).filter(Boolean);return l.length?l:(b.wa?[b.wa]:[])}
+function ctc(b){return (b.ad||b.gov?`<span class="mu">📍 ${e([b.gov&&!String(b.ad||'').includes(b.gov)?b.gov:'',b.ad].filter(Boolean).join(' – '))}</span>`:'')+phs(b).map(n=>`<a class="mu" dir="ltr" href="tel:${e(n)}">📞 ${e(n)}</a>`).join('')+(b.hr?`<span class="pill">🕒 ${e(b.hr)}</span>`:'')+(b.nt?`<span class="mu nt">${e(b.nt)}</span>`:'')}
+function soc2(b){const s=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank" rel="noopener" style="background:${bg}">${t}</a>`:'';return `<div class="soc">${s('map','#2d2d33','📍 الموقع').replace('<a ','<a class="mp" ')}${s('tt','#000','♪')}${s('fb','#1877f2','f')}${s('ig','linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)','◎')}${s('sn','#fffc00;color:#000','👻')}</div>`}
+function socs(b){return soc2(b)}
 function splash(){
  const b=B();
  $('#app').innerHTML=`<div class="sp" style="${D.bg?`background-image:url(${e(D.bg)})`:''}">${D.vid?`<video class="bgv" src="${e(D.vid)}" autoplay muted loop playsinline></video>`:''}<div class="sov"></div>
@@ -167,19 +172,19 @@ function render(){
  const so=(k,bg,t)=>u(b[k])?`<a href="${u(b[k])}" target="_blank" rel="noopener" style="background:${bg}">${t}</a>`:'';
  $('#app').innerHTML=`<header class="tb"><button class="mbtn" onclick="drw(1)" aria-label="الأقسام"><i></i><i></i><i></i></button><div class="tn">${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="tl">🍽</div>'}<b>${e(D.name)}</b></div>${TBL?`<span class="tt">🪑 طاولة ${e(TBL.n)}</span>`:''}</header>
  <div class="hd">${D.logo?`<img class="lg" src="${e(D.logo)}" alt="">`:'<div class="lg">🍽</div>'}<h1>${e(D.name)}</h1><i class="ln"></i>${sel()}
- ${b.ad?`<span class="mu">📍 ${e(b.ad)}</span>`:''}${b.wa?`<a class="mu" dir="ltr" href="tel:${e(b.wa)}">📞 ${e(b.wa)}</a>`:''}${b.hr?`<span class="pill">🕒 ${e(b.hr)}</span>`:''}
- <div class="soc">${so('map','#2d2d33','📍 الموقع').replace('<a ','<a class="mp" ')}${so('tt','#000','♪')}${so('fb','#1877f2','f')}${so('ig','linear-gradient(45deg,#f9a03f,#e1306c,#833ab4)','◎')}</div>
+ ${ctc(b)}
+ ${soc2(b)}${b.noOrd?'<div class="noord">⛔ استقبال الطلبات متوقف مؤقتاً</div>':''}
  ${dis?'<span class="of">🎉 عروض وخصومات</span>':''}</div>
  ${tp.length?`<h2 class="sh" id="top"><i></i>🔥 الأكثر طلباً</h2><div class="hs">${tp.map(card).join('')}</div>`:''}
  ${fvs.length?`<h2 class="sh"><i></i>❤️ المفضلة</h2><div class="hs">${fvs.map(card).join('')}</div>`:''}
  <div class="cs">${cs.map(c=>`<button class="ct ${c==cur?'on':''} ${ci(b,c)?'':'ni'}" data-c="${e(c)}" style="${ci(b,c)?`background-image:linear-gradient(transparent 40%,rgba(0,0,0,.7)),url(${e(ci(b,c))})`:''}" onclick="go(this.dataset.c)">${e(c)}</button>`).join('')}</div>
  ${cur?(()=>{const l=b.items.filter(i=>i.c==cur);return `<h2 class="sh" id="sec"><i></i>${e(cur)} <small>(${l.length})</small></h2><div class="gr">${l.map(card).join('')}</div>`})():''}
- <h2 class="sh"><i></i>فروعنا 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${x.ad?`<div class="mu">📍 ${e(x.ad)}</div>`:''}${x.wa?`<a class="mu" dir="ltr" href="tel:${e(x.wa)}">📞 ${e(x.wa)}</a>`:''}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
- ${cnt?`<div class="bar"><button onclick="sheet()">عرض الطلب (${cnt}) — ${money(tot)}</button></div>`:''}`;
+ <h2 class="sh"><i></i>فروعنا 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${ctc(x)}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
+ ${cnt&&!b.noOrd?`<div class="bar"><button onclick="sheet()">عرض الطلب (${cnt}) — ${money(tot)}</button></div>`:''}`;
  ['.cs','.hs'].forEach((s,k)=>{const q=document.querySelector(s);if(q)q.scrollLeft=px[k]});
 }
 function ci(b,c){if(b.cimg&&b.cimg[c])return b.cimg[c];const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
-function add(id,d){cart[id]=Math.max(0,(cart[id]||0)+d);render();if($('#ov').innerHTML)sheet()}
+function add(id,d){if(B().noOrd){toast('استقبال الطلبات متوقف مؤقتاً');return}cart[id]=Math.max(0,(cart[id]||0)+d);render();if($('#ov').innerHTML)sheet()}
 /* ---------- الطلب ---------- */
 const LS={get(k){try{return localStorage.getItem(k)||''}catch(x){return ''}},set(k,v){try{localStorage.setItem(k,v)}catch(x){}}};
 function sheet(){
