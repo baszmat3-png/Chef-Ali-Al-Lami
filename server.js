@@ -46,6 +46,11 @@ function sugMigrate(d) {   // مرة واحدة: المشروبات والفنك
   for (const b of d.branches) { if (b.sugMig) continue; b.sugMig = 1; ch = true; b.sug = (b.cats || []).filter(c => c === 'المشروبات' || c === 'الفنكر'); }
   return ch;
 }
+function sauceMigrate(d) {   // مرة واحدة: فئة «الصلصات» تظهر في «قد تعجبك أيضاً»
+  let ch = false;
+  for (const b of d.branches) { if (b.sauMig) continue; b.sauMig = 1; ch = true; if ((b.cats || []).includes('الصلصات')) { b.sug = b.sug || []; if (!b.sug.includes('الصلصات')) b.sug.push('الصلصات'); } }
+  return ch;
+}
 let chain = Promise.resolve();
 const lock = fn => { const r = chain.then(fn, fn); chain = r.catch(() => {}); return r; };
 
@@ -99,7 +104,7 @@ function need(o, n) {
         const A = a.cats || [], B = b.cats || [];
         if (B.some(c => !A.includes(c))) r.add('add');
         if (A.some(c => !B.includes(c))) r.add('delete');
-      } else if (k === 'cimg' || k === 'ctr' || k === 'csch' || k === 'sug') r.add('edit');
+      } else if (k === 'cimg' || k === 'ctr' || k === 'csch' || k === 'sug' || k === 'sgl') r.add('edit');
       else if (k === 'offers') r.add('offers');
       else if (k === 'tables') r.add('tables');
       else r.add('info');
@@ -373,7 +378,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
-  if (sugMigrate(d) | schMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
+  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];

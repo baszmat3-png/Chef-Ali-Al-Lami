@@ -218,7 +218,7 @@ function render(){
  ['.cs','.hs'].forEach((s,k)=>{const q=document.querySelector(s);if(q)q.scrollLeft=px[k]});
 }
 function ci(b,c){if(b.cimg&&b.cimg[c])return b.cimg[c];const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
-function sugOf(b){const cs=b.sug||[];return b.items.filter(i=>cs.includes(i.c)&&!cart[i.id]).slice(0,14)}
+function sugOf(b){const cs=b.sug||[],L=[];(b.sgl||[]).forEach(id=>{const i=b.items.find(x=>x.id==id);if(i)L.push(i)});b.items.forEach(i=>{if(cs.includes(i.c)&&!L.includes(i))L.push(i)});return L.filter(i=>!cart[i.id]).slice(0,20)}
 function sugHtml(b){const l=sugOf(b);if(!l.length)return '';return `<h3 class="sgh">${T('قد تعجبك أيضاً')}…</h3><div class="sgs">${l.map(i=>`<div class="sg"><div class="sgi" style="${i.img?`background-image:url(${e(i.img)})`:''}">${i.img?'':'🍽'}<button onclick="add('${i.id}',1)" aria-label="+">+</button></div><b>${e(tn(i))}</b><span>${money(i.p)}</span></div>`).join('')}</div>`}
 function rmI(id){delete cart[id];delete IN[id];render();sheet()}
 function add(id,d){if(B().noOrd){toast('استقبال الطلبات متوقف مؤقتاً');return}cart[id]=Math.max(0,(cart[id]||0)+d);render();if($('#ov').innerHTML)sheet()}
