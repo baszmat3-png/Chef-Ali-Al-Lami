@@ -33,7 +33,7 @@ body{background:var(--bg);color:var(--tx);font:16px/1.5 Tajawal,system-ui,Tahoma
 .idl{border:0;background:#fee2e2;color:#b91c1c;border-radius:10px;width:34px;height:34px;font-size:15px;cursor:pointer;padding:0}
 .sgh{margin:16px 0 8px;font-size:18px}.sgs{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.sg{flex:none;width:112px;scroll-snap-align:start}.sgi{position:relative;width:112px;height:112px;border-radius:16px;background:var(--bd) center/cover;display:grid;place-items:center;font-size:30px;overflow:hidden}.sgi button{position:absolute;bottom:6px;left:6px;width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:var(--pr,var(--ac));font-size:22px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;padding:0}.sg b{display:block;font-size:13px;margin-top:6px;line-height:1.3;color:var(--tx)}.sg span{font-size:13px;color:var(--mu)}
 .inn{margin:8px 0 0;font-size:14px;padding:8px 10px}
-.noord{background:#fee2e2;color:#991b1b;border-radius:14px;padding:8px 14px;font-weight:700;margin:8px 0}.nt{display:block;white-space:pre-line}
+.clsd .acs,.clsd .sg button{display:none!important}.clo{position:fixed;inset:0;z-index:50;background:var(--bg,#111);color:var(--tx,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}.clo img,.clo .tl{width:96px;height:96px;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-size:44px;background:#222}.clo .cm{font-size:48px}.clo h2{margin:0;font-size:26px}.clo p{margin:0;line-height:1.9;font-size:17px;opacity:.9}.clo button{margin-top:10px;border:0;border-radius:14px;padding:14px 44px;font-weight:700;font-size:17px;font-family:inherit;background:#e8c26a;color:#111;cursor:pointer}.sm{border:1px solid var(--bd,#333);border-radius:14px;padding:10px 14px;margin:10px 0}.sm>div{display:flex;justify-content:space-between;padding:4px 0}.sm .gt{border-top:1px dashed var(--bd,#444);margin-top:4px;padding-top:8px;font-size:18px;font-weight:800}.noord{background:#fee2e2;color:#991b1b;border-radius:14px;padding:8px 14px;font-weight:700;margin:8px 0}.nt{display:block;white-space:pre-line}
 .soc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
 .soc a{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:800;font-size:20px}
 .soc .mp{width:auto;border-radius:24px;padding:0 20px;background:#2d2d33;font-size:16px}
@@ -152,8 +152,8 @@ const B=()=>D.branches[bi];
 function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(t.k);t.k=setTimeout(()=>t.style.display='none',2600)}
 function sel(){return !TBL&&D.branches.length>1?'<div class="tabs">'+D.branches.map((b,i)=>`<button class="${i==bi?'on':''}" onclick="pickB(${i})">${e(b.name)}</button>`).join('')+'</div>':''}
 function pickB(i){bi=i;cat='';cart={};IN={};render()}
-const UI={en:{'دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','قد تعجبك أيضاً':'You may also like','ملاحظة لهذا الصنف':'Note for this item','اختياري':'optional','العنوان':'Address','كل الأصناف':'All items'},
- ku:{'دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','قد تعجبك أيضاً':'لەوانەیە حەزت لێبێت','ملاحظة لهذا الصنف':'تێبینی بۆ ئەم خواردنە','اختياري':'ئارەزوومەندانە','العنوان':'ناونیشان','كل الأصناف':'هەموو خواردنەکان'}};
+const UI={en:{'المطعم مغلق حالياً':'The restaurant is currently closed','سيعاد فتحه الساعة':'It will reopen at','تصفح':'Browse','للتصفح فقط':'browse only','المنطقة':'Area','اختر منطقتك':'Choose your area','توصيل مجاني':'Free delivery','مجاني':'Free','أجور التوصيل':'Delivery fee','الإجمالي':'Total','دخول المنيو':'Enter menu','اختر الفرع':'Choose branch','الأكثر طلباً':'Most ordered','المفضلة':'Favorites','فروعنا':'Our branches','عروض وخصومات':'Offers & discounts','عرض الطلب':'View order','الأقسام':'Categories','إضافة':'Add','طلبك':'Your order','الاسم':'Name','رقم الهاتف':'Phone','ملاحظات':'Notes','المجموع':'Total','رجوع':'Back','إرسال الطلب':'Send order','قيّم تجربتك':'Rate your experience','رقم الطاولة':'Table','قد تعجبك أيضاً':'You may also like','ملاحظة لهذا الصنف':'Note for this item','اختياري':'optional','العنوان':'Address','كل الأصناف':'All items'},
+ ku:{'المطعم مغلق حالياً':'ڕێستۆرانتەکە ئێستا داخراوە','سيعاد فتحه الساعة':'دووبارە دەکرێتەوە لە کاتژمێر','تصفح':'گەڕان','للتصفح فقط':'تەنها بۆ گەڕان','المنطقة':'ناوچە','اختر منطقتك':'ناوچەکەت هەڵبژێرە','توصيل مجاني':'گەیاندنی بێبەرامبەر','مجاني':'بێبەرامبەر','أجور التوصيل':'کرێی گەیاندن','الإجمالي':'کۆی گشتی','دخول المنيو':'چوونە ناو مینیو','اختر الفرع':'لقەکە هەڵبژێرە','الأكثر طلباً':'زۆرترین داواکراو','المفضلة':'دڵخوازەکان','فروعنا':'لقەکانمان','عروض وخصومات':'ئۆفەر و داشکاندن','عرض الطلب':'بینینی داواکاری','الأقسام':'بەشەکان','إضافة':'زیادکردن','طلبك':'داواکارییەکەت','الاسم':'ناو','رقم الهاتف':'ژمارەی مۆبایل','ملاحظات':'تێبینی','المجموع':'کۆی گشتی','رجوع':'گەڕانەوە','إرسال الطلب':'ناردنی داواکاری','قيّم تجربتك':'هەڵسەنگاندن','رقم الطاولة':'مێز','قد تعجبك أيضاً':'لەوانەیە حەزت لێبێت','ملاحظة لهذا الصنف':'تێبینی بۆ ئەم خواردنە','اختياري':'ئارەزوومەندانە','العنوان':'ناونیشان','كل الأصناف':'هەموو خواردنەکان'}};
 const LGN={ar:'عربي',en:'EN',ku:'کوردی'};
 const LGo=()=>{try{return localStorage.getItem('lg')||'ar'}catch(x){return 'ar'}};
 const T=s=>{const l=LGo();return (UI[l]&&UI[l][s])||s};
@@ -181,7 +181,10 @@ let SKEW=0;
 const bgNow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Baghdad',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date(Date.now()+SKEW));return (+p.find(x=>x.type=='hour').value%24)*60+ +p.find(x=>x.type=='minute').value};
 const hmn=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));return m?(+m[1])*60+ +m[2]:null};
 function isOpen(b,c){const s=b.csch&&b.csch[c],f=s&&hmn(s.from),t=s&&hmn(s.to);if(f==null||t==null||f===t)return true;const m=bgNow();return f<t?(m>=f&&m<t):(m>=f||m<t)}
-function applySch(){let ch=false;D.branches.forEach(x=>{const all=x.all||x.items,n=all.filter(i=>isOpen(x,i.c));if(!x.items||n.length!=x.items.length)ch=true;x.items=n});
+const BRW={};
+function clsOn(b){const c=b&&b.cls,f=c&&hmn(c.from),t=c&&hmn(c.to);if(f==null||t==null||f===t)return false;const m=bgNow();return f<t?(m>=f&&m<t):(m>=f||m<t)}
+function fmT(t){const m=hmn(t);if(m==null)return '';const h=Math.floor(m/60),mi=m%60,ap=h<12?'صباحاً':'مساءً',h12=h%12||12;return h12+':'+String(mi).padStart(2,'0')+' '+ap}
+function applySch(){let ch=false;D.branches.forEach(x=>{const all=x.all||x.items,n=clsOn(x)?all:all.filter(i=>isOpen(x,i.c));if(!x.items||n.length!=x.items.length)ch=true;x.items=n});
  const b=B();if(b)Object.keys(cart).forEach(id=>{if(!b.items.some(i=>i.id==id))delete cart[id]});return ch}
 function catsOf(b){return b.cats.filter(c=>b.items.some(i=>i.c==c))}
 function topOf(b){if(D.noTop)return[];return (TOP[b.id]||[]).map(id=>b.items.find(i=>i.id==id)).filter(Boolean).slice(0,8)}
@@ -214,28 +217,33 @@ function render(){
  ${fvs.length?`<h2 class="sh"><i></i>❤️ ${T('المفضلة')}</h2><div class="hs">${fvs.map(card).join('')}</div>`:''}
  ${cur=='*'?allView(b,cs,card):cur?(()=>{const l=b.items.filter(i=>i.c==cur);return `<h2 class="sh" id="sec"><i></i>${e(tc(b,cur))} <small>(${l.length})</small></h2><div class="gr">${l.map(card).join('')}</div>`})():''}
  <h2 class="sh"><i></i>${T('فروعنا')} 🏬</h2>${D.branches.map(x=>`<div class="br"><h3>${e(x.name)}</h3>${ctc(x)}${u(x.map)?`<a class="mp2" href="${u(x.map)}" target="_blank" rel="noopener">📍 الموقع</a>`:''}</div>`).join('')}
- ${cnt&&!b.noOrd?`<div class="bar"><button onclick="sheet()">${T('عرض الطلب')} (${cnt}) — ${money(tot)}</button></div>`:''}`;
+ ${cnt&&!b.noOrd&&!clsOn(b)?`<div class="bar"><button onclick="sheet()">${T('عرض الطلب')} (${cnt}) — ${money(tot)}</button></div>`:''}`;
+ {const on=clsOn(b);document.body.classList.toggle('clsd',on);const o=$('#clo');if(o)o.remove();
+  if(on&&!BRW[b.id]){const d=document.createElement('div');d.id='clo';d.className='clo';d.innerHTML=`${D.logo?`<img src="${e(D.logo)}" alt="">`:'<div class="tl">🍽</div>'}<div class="cm">🌙</div><h2>${T('المطعم مغلق حالياً')}</h2><p>${e(b.name)}<br>${T('سيعاد فتحه الساعة')} <b>${fmT(b.cls.to)}</b></p><button onclick="BRW[B().id]=1;render()">${T('تصفح')}</button>`;document.body.appendChild(d)}
+  else if(on){const n=document.createElement('div');n.className='noord';n.id='clb';n.textContent='🌙 '+T('المطعم مغلق حالياً')+' — '+T('سيعاد فتحه الساعة')+' '+fmT(b.cls.to)+' ('+T('للتصفح فقط')+')';const h=document.querySelector('#app .hd');if(h)h.appendChild(n)}}
  ['.cs','.hs'].forEach((s,k)=>{const q=document.querySelector(s);if(q)q.scrollLeft=px[k]});
 }
 function ci(b,c){if(b.cimg&&b.cimg[c])return b.cimg[c];const i=b.items.find(i=>i.c==c&&i.img);return i&&i.img}
 function sugOf(b){const cs=b.sug||[],L=[];(b.sgl||[]).forEach(id=>{const i=b.items.find(x=>x.id==id);if(i)L.push(i)});b.items.forEach(i=>{if(cs.includes(i.c)&&!L.includes(i))L.push(i)});return L.filter(i=>!cart[i.id]).slice(0,20)}
 function sugHtml(b){const l=sugOf(b);if(!l.length)return '';return `<h3 class="sgh">${T('قد تعجبك أيضاً')}…</h3><div class="sgs">${l.map(i=>`<div class="sg"><div class="sgi" style="${i.img?`background-image:url(${e(i.img)})`:''}">${i.img?'':'🍽'}<button onclick="add('${i.id}',1)" aria-label="+">+</button></div><b>${e(tn(i))}</b><span>${money(i.p)}</span></div>`).join('')}</div>`}
 function rmI(id){delete cart[id];delete IN[id];render();sheet()}
-function add(id,d){if(B().noOrd){toast('استقبال الطلبات متوقف مؤقتاً');return}cart[id]=Math.max(0,(cart[id]||0)+d);render();if($('#ov').innerHTML)sheet()}
+function add(id,d){if(clsOn(B())){toast('المطعم مغلق حالياً');return}if(B().noOrd){toast('استقبال الطلبات متوقف مؤقتاً');return}cart[id]=Math.max(0,(cart[id]||0)+d);render();if($('#ov').innerHTML)sheet()}
 /* ---------- الطلب ---------- */
 const LS={get(k){try{return localStorage.getItem(k)||''}catch(x){return ''}},set(k,v){try{localStorage.setItem(k,v)}catch(x){}}};
+function zoneOf(b,n){return n&&(b.zones||[]).find(z=>z.n==n)||null}
 function sheet(){
  const b=B(),ls=b.items.filter(i=>cart[i.id]);
  if(!ls.length){$('#ov').innerHTML='';return}
  const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0),v=id=>($('#'+id)||{}).value||'';
  const sgx=(document.querySelector('.sgs')||{}).scrollLeft||0,ovy=(document.querySelector('.ov')||{}).scrollTop||0;
- const keep={nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),ad:v('ad')||LS.get('c_ad'),nt:v('nt')};
+ const keep={zn:v('zn')||LS.get('c_zn'),nm:v('nm')||LS.get('c_nm'),ph:v('ph')||LS.get('c_ph'),ad:v('ad')||LS.get('c_ad'),nt:v('nt')};
  $('#ov').innerHTML=`<div class="ov"><div class="w"><h1>${T('طلبك')} — ${e(b.name)}</h1>${ls.map(i=>`<div class="box"><div class="irow"><div class="ith" style="${i.img?`background-image:url(${e(i.img)})`:''}">${i.img?'':'🍽'}</div><div class="inm">${e(tn(i))}</div><button class="idl" onclick="rmI('${i.id}')" aria-label="حذف">🗑</button><div class="qp"><button onclick="add('${i.id}',-1)" aria-label="−">−</button><b>${cart[i.id]}</b><button onclick="add('${i.id}',1)" aria-label="+">+</button></div><b class="ipr">${money(cart[i.id]*i.p)}</b></div><input class="inn" maxlength="100" placeholder="${T('ملاحظة لهذا الصنف')} (${T('اختياري')})" value="${e(IN[i.id]||'')}" oninput="IN['${i.id}']=this.value"></div>`).join('')}
 ${sugHtml(b)}
- <h3>${T('المجموع')}: ${money(tot)}</h3>
+ ${(()=>{const z=zoneOf(b,keep.zn);return z?`<div class="sm"><div><span>${T('المجموع')}</span><b>${money(tot)}</b></div><div><span>🚚 ${T('أجور التوصيل')}</span><b>${z.f?money(z.f):T('مجاني')}</b></div><div class="gt"><span>${T('الإجمالي')}</span><b>${money(tot+(+z.f||0))}</b></div></div>`:`<h3>${T('المجموع')}: ${money(tot)}</h3>`})()}
  ${TBL?`<div class="box tbx"><span>🪑 رقم الطاولة</span><small>(ثابت)</small><b>${e(TBL.n)}</b></div>`:''}
  <label class="fl" for="nm">${T('الاسم')}</label><input id="nm" autocomplete="name" placeholder="اكتب اسمك" value="${e(keep.nm)}">
  <label class="fl" for="ph">${T('رقم الهاتف')}</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xxxxxxxxx" value="${e(keep.ph)}">
+ ${TBL||!(b.zones||[]).length?'':`<label class="fl" for="zn">${T('المنطقة')}</label><select id="zn" onchange="LS.set('c_zn',this.value);sheet()"><option value="">${T('اختر منطقتك')}</option>${b.zones.map(z=>`<option value="${e(z.n)}" ${z.n==keep.zn?'selected':''}>${e(z.n)} — ${z.f?money(z.f):T('توصيل مجاني')}</option>`).join('')}</select>`}
  ${TBL?'':`<label class="fl" for="ad">${T('العنوان')}</label><input id="ad" autocomplete="street-address" placeholder="المنطقة / الشارع / أقرب نقطة دالة" value="${e(keep.ad)}">`}
  <label class="fl" for="nt">${T('ملاحظات')}</label><textarea id="nt" rows="2" placeholder="مثال: بدون بصل">${e(keep.nt)}</textarea>
  <button class="b p" style="width:100%;padding:13px;margin-top:12px" onclick="send()">${b.waOff?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}</button>
@@ -263,14 +271,15 @@ async function send(){
  if(w[0]=='0')w='964'+w.slice(1);
  if(!v('nm')){toast('اكتب الاسم');$('#nm').focus();return}
  if(v('ph').replace(/\D/g,'').length<7){toast('اكتب رقم هاتف صحيح');$('#ph').focus();return}
+ if(!TBL&&(b.zones||[]).length&&!zoneOf(b,v('zn'))){toast('اختر المنطقة');$('#zn').focus();return}
  if(!TBL&&!v('ad')){toast('اكتب العنوان');$('#ad').focus();return}
  SND=1;const btn=document.querySelector('.ov .b.p');if(btn){btn.disabled=true;btn.textContent='جارٍ الإرسال…'}
  // نفتح نافذة واتساب فوراً (ضمن ضغطة المستخدم) ثم نعبّئ الرابط بعد أخذ رقم الطلب من السيرفر
  let wn=null;if(!noWa){try{wn=window.open('','_blank')}catch(x){}}
- const tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0);let no=null,fail=0;
+ const zn=TBL?null:zoneOf(b,v('zn')),fee=zn?(+zn.f||0):0,tot=ls.reduce((s,i)=>s+cart[i.id]*i.p,0)+fee;let no=null,fail=0;
  LS.set('c_nm',v('nm'));LS.set('c_ph',v('ph'));LS.set('c_ad',v('ad'));
  for(let t=0;t<3&&!no;t++){try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),9000);
-  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id],n:(IN[i.id]||'').trim()})),name:v('nm'),phone:v('ph'),addr:v('ad'),notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
+  const r=await fetch('/api/order',{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json'},body:JSON.stringify({b:b.id,items:ls.map(i=>({id:i.id,q:cart[i.id],n:(IN[i.id]||'').trim()})),name:v('nm'),phone:v('ph'),addr:v('ad'),zone:zn?zn.n:'',notes:v('nt'),tk:TBL?{t:TBL.t,s:TBL.s}:null})});clearTimeout(tm);
   if(r.ok){no=(await r.json()).no}else{fail=1;if(r.status<500&&r.status!=429)break}}catch(x){fail=1}}
  if(!no){SND=0;try{wn&&wn.close()}catch(x){}toast('تعذر تسجيل الطلب وأخذ رقمه، تحقق من الاتصال وحاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent=noWa?'إرسال الطلب':'إرسال الطلب عبر واتساب 💬'}return}
  if(noWa){SND=0;if(fail||!no){try{wn&&wn.close()}catch(x){}toast('تعذر إرسال الطلب، حاول مرة أخرى');if(btn){btn.disabled=false;btn.textContent='إرسال الطلب'}return}
@@ -278,8 +287,10 @@ async function send(){
  const nf=n=>Number(n||0).toLocaleString('en-US');
  let m=`اهلا وسهلا بك بمطعم ${D.name}\n🏬 ${b.wn||b.name.replace(/\s*سوق المدينة\s*/,' ').trim()}\nرقم الطلب الخاص بك هو ${no}\n\nمعلومات الطلب :\n`+ls.map(i=>`▪️${i.n} X ${cart[i.id]}`+((IN[i.id]||'').trim()?`\n   📝 ${IN[i.id].trim()}`:'')).join('\n')+`\n\n\nمعلومات الزبون :\n👤 ${v('nm')}\n☎️ ${v('ph')}`;
  if(TBL)m+=`\n🪑 الطاولة: ${TBL.n}`;
+ if(zn)m+=`\n📍 المنطقة: ${zn.n}`;
  if(v('ad'))m+=`\n📌 ${v('ad')}`;
  if(v('nt'))m+=`\n📝 ملاحظات: ${v('nt')}`;
+ if(zn)m+=`\n\n🚚 أجور التوصيل : ${fee?nf(fee)+' IQD':'مجاني'}`;
  m+=`\n\n\nالمجموع الكلي للطلب : ${nf(tot)} IQD`;
  const url='https://wa.me/'+w+'?text='+encodeURIComponent(m);SND=0;if(btn){btn.disabled=false;btn.textContent='إرسال الطلب عبر واتساب 💬'}
  if(wn&&!wn.closed){wn.location.href=url}else{location.href=url}

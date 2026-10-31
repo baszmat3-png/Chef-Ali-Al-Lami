@@ -27,6 +27,7 @@ let lastAuto = 0;
 /* ---- جدول ظهور الفئات (بتوقيت بغداد) ---- */
 const bagMin = () => { const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Baghdad', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()); return (+p.find(x => x.type === 'hour').value % 24) * 60 + +p.find(x => x.type === 'minute').value; };
 const hm = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '')); return m ? (+m[1]) * 60 + +m[2] : null; };
+const brClosed = (br) => { const c = br.cls, f = c && hm(c.from), t = c && hm(c.to); if (f == null || t == null || f === t) return false; const m = bagMin(); return f < t ? (m >= f && m < t) : (m >= f || m < t); };
 const openNow = (br, c) => { const s = br.csch && br.csch[c], f = s && hm(s.from), t = s && hm(s.to); if (f == null || t == null || f === t) return true; const m = bagMin(); return f < t ? (m >= f && m < t) : (m >= f || m < t); };
 function schMigrate(d) {   // مرة واحدة لكل فرع: الشرقي 12:30–18:00 والفطور 07:00–12:00 (يمكن تعديلها من لوحة التحكم)
   let ch = false;
@@ -41,6 +42,18 @@ function schMigrate(d) {   // مرة واحدة لكل فرع: الشرقي 12:3
   return ch;
 }
 
+function clsMigrate(d) {   // مرة واحدة: أوقات إغلاق الفروع (زيونة 2→6 ص، المدينة 3→10:30 ص)
+  const def = { zayouna: { from: '02:00', to: '06:00' }, madina: { from: '03:00', to: '10:30' } };
+  let ch = false;
+  for (const b of d.branches) { if (b.clsMig) continue; b.clsMig = 1; ch = true; if (def[b.id] && !b.cls) b.cls = def[b.id]; }
+  return ch;
+}
+const ZONES0 = {"zayouna": [["زيونة", 1000], ["شارع الربيعي", 1000], ["بلديات", 2000], ["كرادة", 2000], ["الغدير", 2000], ["بغداد الجديدة", 2000], ["شارع فلسطين", 2000], ["المشتل", 2000], ["مجمع الزهور", 3000], ["الأمين", 2000], ["مدينة الطب", 3000], ["العبيدي", 3000]], "madina": [["ساحة مظفر", 1000], ["جميلة", 1000], ["الحبيبية", 1000], ["الطالبية", 1000], ["حي الأمانة", 1000], ["ساحة الحمزة", 1000], ["كل القطاعات", 1000], ["ق 1", 1000], ["ق 2", 1000], ["ق 3", 1000], ["ق 4", 1000], ["ق 5", 1000], ["ق 6", 1000], ["ق 7", 1000], ["ق 8", 1000], ["ق 9", 1000], ["ق 10", 1000], ["ق 11", 1000], ["ق 12", 1000], ["ق 13", 1000], ["ق 14", 1000], ["ق 15", 1000], ["ق 16", 1000], ["ق 17", 1000], ["ق 18", 1000], ["ق 19", 1000], ["ق 20", 1000], ["ق 21", 1000], ["ق 22", 1000], ["ق 23", 1000], ["ق 24", 1000], ["ق 25", 1000], ["ق 26", 1000], ["ق 27", 1000], ["ق 28", 1000], ["ق 29", 1000], ["ق 30", 1000], ["ق 31", 1000], ["ق 32", 1000], ["ق 33", 1000], ["ق 34", 1000], ["ق 35", 1000], ["ق 36", 1000], ["ق 37", 1000], ["ق 38", 1000], ["ق 39", 1000], ["ق 40", 1000], ["ق 41", 1000], ["ق 42", 1000], ["ق 43", 1000], ["ق 44", 1000], ["ق 45", 1000], ["ق 46", 1000], ["ق 47", 1000], ["ق 48", 1000], ["ق 49", 1000], ["ق 50", 1000], ["ق 51", 1000], ["ق 52", 1000], ["ق 53", 1000], ["ق 54", 1000], ["ق 55", 1000], ["ق 56", 1000], ["ق 57", 1000], ["ق 59", 1000], ["ق 60", 1000], ["ق 61", 1000], ["ق 62", 1000], ["ق 63", 1000], ["ق 64", 1000], ["ق 65", 1000], ["ق 66", 1000], ["ق 67", 1000], ["ق 68", 1000], ["ق 69", 1000], ["ق 70", 1000], ["ق 71", 1000], ["ق 72", 1000], ["ق 73", 1000], ["ق 74", 1000], ["ق 75", 1000], ["ق 76", 1000], ["ق 77", 1000], ["ق 78", 1000], ["ق 79", 1000], ["ق 80", 1000], ["حي أور", 2000], ["حي البنوك", 2000], ["أم الكبر", 2000], ["الحميدية", 2000], ["الشيشان", 2000], ["حي طارق", 2000], ["الدسيم", 2000], ["حي الكوفة", 2000], ["شارع السجة", 2000], ["سبع قصور", 3000], ["الشعب", 3000], ["حي النصر", 3000], ["الكفائات", 3000], ["ق 58 / الصدرين", 0]]};
+function zoneMigrate(d) {   // مرة واحدة: مناطق التوصيل وأجورها لكل فرع
+  let ch = false;
+  for (const b of d.branches) { if (b.zoneMig) continue; b.zoneMig = 1; ch = true; if (ZONES0[b.id] && !(b.zones || []).length) b.zones = ZONES0[b.id].map(([n, f]) => ({ n, f })); }
+  return ch;
+}
 function sugMigrate(d) {   // مرة واحدة: المشروبات والفنكر تظهر في «قد تعجبك أيضاً»
   let ch = false;
   for (const b of d.branches) { if (b.sugMig) continue; b.sugMig = 1; ch = true; b.sug = (b.cats || []).filter(c => c === 'المشروبات' || c === 'الفنكر'); }
@@ -267,6 +280,7 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
   if (orderLimited(req.ip)) return res.status(429).json({ error: 'many' });
   const b = req.body || {}, br = MENU.d.branches.find(x => x.id === b.b);
   if (!br || !Array.isArray(b.items) || !b.items.length || b.items.length > 60) return res.status(400).json({ error: 'bad' });
+  if (brClosed(br)) return res.status(400).json({ error: 'closed' });
   const items = [];
   for (const x of b.items) {
     const it = br.items.find(i => i.id === x.id), q = Math.floor(Number(x.q));
@@ -282,6 +296,11 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
   const o = { id: Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), ts: new Date().toISOString(), b: br.id, bn: br.name, table,
     name: clip(b.name, 60), phone: clip(b.phone, 25), addr: clip(b.addr, 200), notes: clip(b.notes, 300), items, total: items.reduce((s, i) => s + i.p * i.q, 0) };
   if (!o.name || o.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'bad contact' });
+  if (!table && (br.zones || []).length) {
+    const z = br.zones.find(x => x.n === String(b.zone || ''));
+    if (!z) return res.status(400).json({ error: 'zone' });
+    o.zone = z.n; o.fee = Math.max(0, Math.round(Number(z.f) || 0)); o.total += o.fee;
+  }
   await lock(async () => { o.no = CTR++; await S.setKV('ctr', { n: CTR }); await S.addOrder(o); });
   TOP = null;
   res.json({ ok: true, id: o.id, no: o.no });
@@ -378,7 +397,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
-  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
+  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];
