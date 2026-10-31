@@ -59,6 +59,11 @@ function secMigrate(d) {   // مرة واحدة: «كل القطاعات» تط�
   for (const b of d.branches) { if (b.secMig) continue; b.secMig = 1; ch = true; (b.zones || []).forEach(z => { if (z.n === 'كل القطاعات') z.sec = 1; }); }
   return ch;
 }
+function numSecMigrate(d) {   // مرة واحدة: حذف القطاعات المرقمة (ق 1…ق 80) بعد اعتماد حقل رقم القطاع
+  let ch = false;
+  for (const b of d.branches) { if (b.numSecMig) continue; b.numSecMig = 1; ch = true; if (b.zones) b.zones = b.zones.filter(z => !/^ق\s*\d+$/.test(String(z.n).trim())); }
+  return ch;
+}
 function sugMigrate(d) {   // مرة واحدة: المشروبات والفنكر تظهر في «قد تعجبك أيضاً»
   let ch = false;
   for (const b of d.branches) { if (b.sugMig) continue; b.sugMig = 1; ch = true; b.sug = (b.cats || []).filter(c => c === 'المشروبات' || c === 'الفنكر'); }
@@ -402,7 +407,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
-  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d) | secMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
+  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d) | secMigrate(d) | numSecMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];
