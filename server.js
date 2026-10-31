@@ -54,6 +54,11 @@ function zoneMigrate(d) {   // مرة واحدة: مناطق التوصيل وأ
   for (const b of d.branches) { if (b.zoneMig) continue; b.zoneMig = 1; ch = true; if (ZONES0[b.id] && !(b.zones || []).length) b.zones = ZONES0[b.id].map(([n, f]) => ({ n, f })); }
   return ch;
 }
+function secMigrate(d) {   // مرة واحدة: «كل القطاعات» تطلب رقم القطاع
+  let ch = false;
+  for (const b of d.branches) { if (b.secMig) continue; b.secMig = 1; ch = true; (b.zones || []).forEach(z => { if (z.n === 'كل القطاعات') z.sec = 1; }); }
+  return ch;
+}
 function sugMigrate(d) {   // مرة واحدة: المشروبات والفنكر تظهر في «قد تعجبك أيضاً»
   let ch = false;
   for (const b of d.branches) { if (b.sugMig) continue; b.sugMig = 1; ch = true; b.sug = (b.cats || []).filter(c => c === 'المشروبات' || c === 'الفنكر'); }
@@ -299,7 +304,7 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
   if (!table && (br.zones || []).length) {
     const z = br.zones.find(x => x.n === String(b.zone || ''));
     if (!z) return res.status(400).json({ error: 'zone' });
-    o.zone = z.n; o.fee = Math.max(0, Math.round(Number(z.f) || 0)); o.total += o.fee;
+    o.zone = z.n; if (z.sec) { const sc = String(b.sector || '').replace(/\D/g, '').slice(0, 4); if (!sc) return res.status(400).json({ error: 'sector' }); o.sector = sc; } o.fee = Math.max(0, Math.round(Number(z.f) || 0)); o.total += o.fee;
   }
   await lock(async () => { o.no = CTR++; await S.setKV('ctr', { n: CTR }); await S.addOrder(o); });
   TOP = null;
@@ -397,7 +402,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
-  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
+  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d) | secMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];
