@@ -399,6 +399,22 @@ app.post('/api/restore', auth('owner'), express.json({ limit: '250mb' }), ah((re
   res.json({ ok: true, v: MENU.d._v, items: MENU.d.branches.reduce((n, x) => n + (x.items || []).length, 0), branches: MENU.d.branches.length, files: (b.files || []).length, orders: (b.orders || []).length, users: USERS.length });
 })));
 
+// ---- صفحة الخصوصية (مطلوبة لمتجر Google Play) + رابط ربط التطبيق بالموقع ----
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const privacyPage = (req, res) => {
+  const email = process.env.CONTACT_EMAIL || '', d = MENU && MENU.d;
+  const phones = []; ((d && d.branches) || []).forEach((b) => { [b.wa].concat((b.phones || []).map((x) => x && (x.n || x))).forEach((n) => { if (n && !phones.includes(String(n))) phones.push(String(n)); }); });
+  const contact = (email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : '') + (phones.length ? (email ? ' — ' : '') + phones.map((n) => `<bdi dir="ltr">${esc(n)}</bdi>`).join(' / ') : '');
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'privacy.html'), 'utf8').replace(/\{\{NAME\}\}/g, esc((d && d.name) || 'المطعم')).replace(/\{\{CONTACT\}\}/g, contact || 'عبر أرقام الفروع الظاهرة داخل التطبيق');
+  res.set('Cache-Control', 'no-cache').type('html').send(html);
+};
+['/privacy', '/privacy-policy', '/privacy.html'].forEach((u) => app.get(u, privacyPage));
+['/delete-data', '/delete-account'].forEach((u) => app.get(u, (req, res) => res.redirect(302, '/privacy#delete')));
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  const fps = String(process.env.ASSET_FPS || '').split(',').map((x) => x.trim()).filter(Boolean);
+  res.json([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.ANDROID_PACKAGE || 'com.chefalilami.menu', sha256_cert_fingerprints: fps } }]);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 (async () => {

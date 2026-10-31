@@ -16,3 +16,5 @@ services:
         fromDatabase:
           name: chef-ali-db
           property: connectionString
+      - key: CONTACT_EMAIL      # بريد التواصل الظاهر في صفحة الخصوصية /privacy (مطلوب لمتجر Google Play)
+        sync: false

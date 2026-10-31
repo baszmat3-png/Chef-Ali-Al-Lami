@@ -1,0 +1,45 @@
+plugins { id 'com.android.application' }
+
+// عنوان الموقع الذي يعرضه التطبيق — غيّره إن انتقل المنيو لنطاق آخر
+def START_URL = "https://chef-ali-al-lami.onrender.com/"
+
+android {
+    namespace 'com.chefalilami.menu'
+    compileSdk 36
+    defaultConfig {
+        applicationId "com.chefalilami.menu"
+        minSdk 24
+        targetSdk 36
+        versionCode (System.getenv("VERSION_CODE") ?: "1").toInteger()
+        versionName "1.0.0"
+        buildConfigField "String", "START_URL", "\"${START_URL}\""
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            def ks = System.getenv("KEYSTORE_FILE")
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (System.getenv("KEYSTORE_FILE")) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core:1.15.0'
+}
