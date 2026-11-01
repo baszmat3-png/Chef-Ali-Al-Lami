@@ -2,6 +2,7 @@ plugins { id 'com.android.application' }
 
 // عنوان الموقع الذي يعرضه التطبيق — غيّره إن انتقل المنيو لنطاق آخر
 def START_URL = "https://chef-ali-al-lami.onrender.com/"
+def VCODE = Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
 
 android {
     namespace 'com.chefalilami.menu'
@@ -10,7 +11,7 @@ android {
         applicationId "com.chefalilami.menu"
         minSdk 24
         targetSdk 36
-        versionCode (System.getenv("VERSION_CODE") ?: "1").toInteger()
+        versionCode = VCODE
         versionName "1.0.0"
         buildConfigField "String", "START_URL", "\"${START_URL}\""
     }
