@@ -5,6 +5,9 @@ on:
   push:
     paths: ['android/**', '.github/workflows/android.yml']
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +19,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      # حزم أندرويد مثبّتة مسبقاً على جهاز GitHub؛ نكمل المنصة وأدوات البناء المطلوبة ونقبل التراخيص
+      - name: Android SDK packages
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -68,3 +75,12 @@ jobs:
           name: chef-ali-menu-android
           path: out/*
           retention-days: 30
+
+      # رابط تنزيل مباشر للـ APK من صفحة Releases (الـ AAB يبقى في Artifacts فقط)
+      - name: Publish APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="apk-${{ github.run_number }}"
+          FILES=$(ls out/*.apk)
+          gh release create "$TAG" $FILES --repo "${{ github.repository }}" --title "APK #${{ github.run_number }}" --notes "نسخة التطبيق رقم ${{ github.run_number }}" --prerelease
