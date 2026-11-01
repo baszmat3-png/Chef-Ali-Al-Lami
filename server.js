@@ -64,6 +64,17 @@ function numSecMigrate(d) {   // مرة واحدة: حذف القطاعات ال
   for (const b of d.branches) { if (b.numSecMig) continue; b.numSecMig = 1; ch = true; if (b.zones) b.zones = b.zones.filter(z => !/^ق\s*\d+$/.test(String(z.n).trim())); }
   return ch;
 }
+const MZ0 = { zayouna: { list: ['حمص', 'تبولة', 'سلطة روسية', 'جاجيك', 'فتة دجاج', 'بيتنجانية', 'تفاحية', 'رمانية', 'زيتون', 'بابا غنوج'], pk: { i262: 2, i263: 2, i264: 4, i265: 5 } },
+  madina: { list: ['حمص', 'جاجيك', 'رمانية', 'بيتنجانية', 'فتة دجاج', 'فتة بيتنجان', 'طرشي زيتون'], pk: { m118: 2, m119: 4, m120: 4, m121: 5, m122: 5 } } };
+function mzMigrate(d) {   // مرة واحدة: قوائم أنواع المقبلات وعدد الاختيارات لكل ماعون
+  let ch = false;
+  for (const b of d.branches) {
+    if (b.mzMig) continue; b.mzMig = 1; ch = true; const z = MZ0[b.id]; if (!z) continue;
+    if (!(b.mz || []).length) b.mz = z.list.map((n) => ({ n, a: true }));
+    for (const id in z.pk) { const it = (b.items || []).find((i) => i.id === id); if (it && it.c === 'المقبلات' && !it.pk) it.pk = z.pk[id]; }
+  }
+  return ch;
+}
 function sugMigrate(d) {   // مرة واحدة: المشروبات والفنكر تظهر في «قد تعجبك أيضاً»
   let ch = false;
   for (const b of d.branches) { if (b.sugMig) continue; b.sugMig = 1; ch = true; b.sug = (b.cats || []).filter(c => c === 'المشروبات' || c === 'الفنكر'); }
@@ -127,7 +138,7 @@ function need(o, n) {
         const A = a.cats || [], B = b.cats || [];
         if (B.some(c => !A.includes(c))) r.add('add');
         if (A.some(c => !B.includes(c))) r.add('delete');
-      } else if (k === 'cimg' || k === 'ctr' || k === 'csch' || k === 'sug' || k === 'sgl') r.add('edit');
+      } else if (k === 'cimg' || k === 'ctr' || k === 'csch' || k === 'sug' || k === 'sgl' || k === 'mz') r.add('edit');
       else if (k === 'offers') r.add('offers');
       else if (k === 'tables') r.add('tables');
       else r.add('info');
@@ -296,7 +307,18 @@ app.post('/api/order', express.json({ limit: '50kb' }), ah(async (req, res) => {
     const it = br.items.find(i => i.id === x.id), q = Math.floor(Number(x.q));
     if (!it || it.a === false || !(q >= 1 && q <= 99)) return res.status(400).json({ error: 'bad item' });
     if (!openNow(br, it.c)) return res.status(400).json({ error: 'closed' });
-    items.push({ id: it.id, n: it.n, q, p: price(br, it), ...(clip(x.n, 100) ? { nt: clip(x.n, 100) } : {}) });
+    let sel = null; const pkN = Math.floor(Number(it.pk)) || 0, mzl = (br.mz || []).filter((m) => m.a !== false).map((m) => m.n);
+    if (pkN > 0 && mzl.length) {
+      if (!Array.isArray(x.sel) || x.sel.length !== q) return res.status(400).json({ error: 'pick' });
+      sel = [];
+      for (const g of x.sel) {
+        if (!Array.isArray(g)) return res.status(400).json({ error: 'pick' });
+        const u = [...new Set(g.map(String))];
+        if (u.length < 1 || u.length > pkN || u.some((n) => !mzl.includes(n))) return res.status(400).json({ error: 'pick' });
+        sel.push(u);
+      }
+    }
+    items.push({ id: it.id, n: it.n, q, p: price(br, it), ...(clip(x.n, 100) ? { nt: clip(x.n, 100) } : {}), ...(sel ? { sel } : {}) });
   }
   let table = null;
   if (b.tk && b.tk.t) {
@@ -423,7 +445,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   let d = await S.getKV('menu');
   if (!d || !Array.isArray(d.branches)) { d = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed.json'), 'utf8')); d._v = 1; await S.setKV('menu', d); }
   MENU = mkMenu(d);
-  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d) | secMigrate(d) | numSecMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
+  if (sugMigrate(d) | schMigrate(d) | sauceMigrate(d) | clsMigrate(d) | zoneMigrate(d) | secMigrate(d) | numSecMigrate(d) | mzMigrate(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   if (await externalize(d)) { d._v = (d._v | 0) + 1; await S.setKV('menu', d); MENU = mkMenu(d); }
   USERS = (await S.getKV('users')) || [];
   RT = (await S.getKV('ratings')) || [];
