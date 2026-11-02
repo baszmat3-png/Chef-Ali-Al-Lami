@@ -316,7 +316,7 @@ async function load(first){
  const [m,t,rs]=await Promise.all([fetch('/api/menu',{cache:'no-cache'}).then(r=>r.json()),fetch('/api/top',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({})),fetch('/api/rating-sum',{cache:'no-cache'}).then(r=>r.json()).catch(()=>({})),fetch('/api/v',{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j.now)SKEW=j.now-Date.now()}).catch(()=>{})]);
  const id=(B()||{}).id;
  D=m;TOP=t||{};RS=rs||{};
- D.branches.forEach(x=>{x.items=(x.items||[]).filter(i=>i.a!==false);applyOffers(x);x.all=x.items});applySch();applyTheme(D.theme);
+ if(!D.logo)D.logo='/logo.png';D.branches.forEach(x=>{x.items=(x.items||[]).filter(i=>i.a!==false);applyOffers(x);x.all=x.items});applySch();applyTheme(D.theme);
  const k=D.branches.findIndex(b=>b.id==id);if(k>=0)bi=k;else if(!first){bi=0;cat=''}
 }
 let ver=-1,chk=0;

@@ -18,19 +18,28 @@ def default(size):
     d.rounded_rectangle([300*s, 270*s, 322*s, 365*s], 9*s, fill=GOLD)
     return im
 
+def fit_edge(src, size, pad):   # يصغّر الشعار ويمدّ أطراف الخلفية بدل لون ثابت (لتجنّب حدود ظاهرة)
+    import numpy as np
+    k = int(size * (1 - 2 * pad)); a = np.asarray(src.convert('RGB').resize((k, k), Image.LANCZOS)); e = size - k
+    a = np.pad(a, ((e // 2, e - e // 2), (e // 2, e - e // 2), (0, 0)), mode='edge'); return Image.fromarray(a).convert('RGBA')
+
 def fit(src, size, pad):
     im = Image.new('RGBA', (size, size), BG); k = int(size * (1 - 2 * pad))
     l = src.copy(); l.thumbnail((k, k), Image.LANCZOS); im.paste(l, ((size - l.width) // 2, (size - l.height) // 2), l if l.mode == 'RGBA' else None); return im
 
 src = Image.open(sys.argv[1]).convert('RGBA') if len(sys.argv) > 1 else default(1024)
+if len(sys.argv) > 1:   # نأخذ لون خلفية الشعار من أطرافه ليملأ الأيقونة بنفس اللون
+    px = [src.getpixel(p)[:3] for p in ((2, 2), (src.width - 3, 2), (2, src.height - 3), (src.width - 3, src.height - 3))]
+    BG = tuple(sorted(c[i] for c in px)[2] for i in range(3))
+    open(f'{R}/store/logo-bg.txt', 'w').write('#%02X%02X%02X' % BG)
 def out(path, im): os.makedirs(os.path.dirname(path), exist_ok=True); im.convert('RGB').save(path)
-full = fit(src, 1024, 0.06) if len(sys.argv) > 1 else src
+full = src.resize((1024, 1024), Image.LANCZOS) if len(sys.argv) > 1 else src
 out(f'{R}/store/icon-512.png', full.resize((512, 512), Image.LANCZOS))
 for n in (192, 512): out(f'{R}/public/icons/icon-{n}.png', full.resize((n, n), Image.LANCZOS))
-out(f'{R}/public/icons/maskable-512.png', fit(src, 512, 0.2))
+out(f'{R}/public/icons/maskable-512.png', fit_edge(src, 512, 0.1) if len(sys.argv) > 1 else fit(src, 512, 0.2))
 res = f'{R}/android/app/src/main/res'
 for d, sz in {'mdpi': 48, 'hdpi': 72, 'xhdpi': 96, 'xxhdpi': 144, 'xxxhdpi': 192}.items():
     ic = full.resize((sz, sz), Image.LANCZOS); out(f'{res}/mipmap-{d}/ic_launcher.png', ic)
     m = Image.new('RGBA', (sz, sz), (0, 0, 0, 0)); mk = Image.new('L', (sz, sz), 0); ImageDraw.Draw(mk).ellipse([0, 0, sz-1, sz-1], fill=255); m.paste(ic, (0, 0), mk); m.save(f'{res}/mipmap-{d}/ic_launcher_round.png')
 for d, sz in {'mdpi': 108, 'hdpi': 162, 'xhdpi': 216, 'xxhdpi': 324, 'xxxhdpi': 432}.items():
-    fg = Image.new('RGBA', (sz, sz), (0, 0, 0, 0)); l = fit(src, int(sz * 0.62), 0).convert('RGBA'); fg.paste(l, ((sz - l.width) // 2, (sz - l.height) // 2)); os.makedirs(f'{res}/mipmap-{d}', exist_ok=True); fg.save(f'{res}/mipmap-{d}/ic_launcher_foreground.png')
+    fg = fit_edge(src, sz, 0.14) if len(sys.argv) > 1 else fit(src, sz, 0.19); os.makedirs(f'{res}/mipmap-{d}', exist_ok=True); fg.save(f'{res}/mipmap-{d}/ic_launcher_foreground.png')
