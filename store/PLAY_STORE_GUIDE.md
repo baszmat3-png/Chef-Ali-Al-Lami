@@ -14,6 +14,11 @@
 
 الأيقونة الحالية افتراضية (شوكة وسكين). لاستبدالها بشعارك مرّر صورة مربعة PNG للأمر أعلاه ثم ارفع التغييرات.
 
+## الجاهز الآن (الأسرع)
+- **`chef-ali-menu-release.aab`** موقّع بمفتاح الرفع `upload.jks` ← ارفعه مباشرة في Play Console (Production أو Closed testing) ولا حاجة لأسرار GitHub.
+- عند الإصدار التالي شغّل الـ workflow ثم وقّع الـ AAB غير الموقّع (`chef-ali-menu-release-unsigned.aab` في Releases) بنفس المفتاح، أو أضف أسرار التوقيع في GitHub ليُوقَّع تلقائياً.
+- **مهم:** استخدم دائماً نفس `upload.jks`. وفي أول رفع فعّل Play App Signing (الافتراضي).
+
 ## 1) الخطوات بالترتيب
 1. **Render ← Environment**: أضف المتغير `CONTACT_EMAIL` ببريدك العام للتواصل (يظهر في صفحة الخصوصية)، ثم تأكد أن الرابط يعمل:  
    `https://chef-ali-al-lami.onrender.com/privacy`
