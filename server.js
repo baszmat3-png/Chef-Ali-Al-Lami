@@ -437,6 +437,16 @@ app.get('/.well-known/assetlinks.json', (req, res) => {
   res.json([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: process.env.ANDROID_PACKAGE || 'com.chefalilami.menu', sha256_cert_fingerprints: fps } }]);
 });
 
+// الصفحة الرئيسية: نضع عنوان الموقع وصورة المعاينة (واتساب/فيسبوك…) بالعنوان الكامل
+const homePage = (req, res) => {
+  const origin = (process.env.PUBLIC_URL || (req.headers['x-forwarded-proto'] || 'https').split(',')[0] + '://' + req.headers.host).replace(/\/$/, '');
+  const lg = MENU && MENU.d && MENU.d.logo, img = lg && /^\/uploads\//.test(lg) ? origin + lg : origin + '/og-image.png?v=3';
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8').replace(/__ORIGIN__/g, esc(origin)).replace(/__OGIMG__/g, esc(img));
+  res.set('Cache-Control', 'no-cache').type('html').send(html);
+};
+app.get('/', homePage);
+app.get('/index.html', homePage);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 (async () => {
