@@ -62,11 +62,19 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle --no-daemon bundleRelease assembleRelease
 
+      # بدون أسرار التوقيع: نبني الـ AAB غير موقّع ثم يُوقَّع يدوياً بمفتاح الرفع
+      - name: Build unsigned release AAB
+        if: steps.key.outputs.has != 'true'
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: gradle --no-daemon bundleRelease
+
       - name: Collect files
         run: |
           mkdir -p out
           cp android/app/build/outputs/apk/debug/*.apk out/chef-ali-menu-debug.apk
-          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then cp android/app/build/outputs/bundle/release/app-release.aab out/chef-ali-menu-release.aab; fi
+          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then cp android/app/build/outputs/bundle/release/app-release.aab out/chef-ali-menu-release$([ '${{ steps.key.outputs.has }}' = 'true' ] || echo -unsigned).aab; fi
           if ls android/app/build/outputs/apk/release/*.apk >/dev/null 2>&1; then cp android/app/build/outputs/apk/release/*.apk out/chef-ali-menu-release.apk; fi
           ls -la out
 
@@ -82,5 +90,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="apk-${{ github.run_number }}"
-          FILES=$(ls out/*.apk)
+          FILES=$(ls out/*.apk out/*unsigned.aab 2>/dev/null)
           gh release create "$TAG" $FILES --repo "${{ github.repository }}" --title "APK #${{ github.run_number }}" --notes "نسخة التطبيق رقم ${{ github.run_number }}" --prerelease
